@@ -1,0 +1,25 @@
+- name: Install Mongo
+- hosts: self
+- tasks:
+  - name: Add MongoDB public key
+    sudo: yes
+    apt_key: >
+      keyserver=hkp://keyserver.ubuntu.com:80
+      id=7F0CEB10
+      state=present
+  - name: Create list file for MongoDB
+    become: yes
+    lineinfile: >
+      line="deb https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse"
+      dest=/etc/apt/sources.list.d/mongodb.list
+      state=present
+      create=yes
+  - name: Actually install MongoDB
+    become: yes
+    apt: name=mongodb-org state=latest update_cache=yes
+    notify:
+      - update apt
+  - name: Start MongoDB
+    service:
+        name: mongodb
+        state: started
