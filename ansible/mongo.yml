@@ -1,6 +1,6 @@
 - name: Install Mongo
-  hosts: self
-  connection: local
+  hosts: db
+  remote_user: ubuntu
   tasks:
   - name: Add MongoDB public key
     become: yes

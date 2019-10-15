@@ -1,0 +1,4 @@
+---
+- import_playbook: mongo.yml
+- import_playbook: webserver.yml
+

@@ -1,0 +1,11 @@
+- name: Webserver
+  hosts: webserver
+  remote_user: ubuntu
+  tasks:
+    - name: Install Node.js
+      become: yes
+      apt:
+        ame: nodejs
+        force_apt_get: yes
+        update_cache: yes
+
