@@ -1,6 +1,6 @@
 {
-  "name": "chirp",
-  "version": "1.0.0",
+  "name": "chirp-api",
+  "version": "0.0.1",
   "scripts": {
     "start": "node src/app.js"
   },
