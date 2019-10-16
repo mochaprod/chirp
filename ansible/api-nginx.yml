@@ -8,11 +8,26 @@
       apt:
         name: nginx
         state: latest
+    - name: Clean up nginx
+      become: yes
+      file:
+        path: '/etc/nginx/sites-enabled/default'
+        state: absent
     - name: git clone repo
       git:
         repo: 'git@github.com:TaskSquirrel/chirp.git'
         dest: ~/chirp
         accept_hostkey: yes
         update: yes
+    - name: Copy load balancer config
+      become: yes
+      file:
+        src: '/home/ubuntu/chirp/packages/chirp-api-nginx/config'
+        dest: '/etc/nginx/conf.d/lb.conf'
+        state: link
+        force: yes
     - name: Start nginx
-      command: nginx -c ~/chirp/packages/chirp-api-nginx/config
+      become: yes
+      service:
+        name: nginx
+        state: restarted
