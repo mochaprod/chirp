@@ -1,1 +1,1 @@
-python3 $(which ansible-playbook) api-nginx.yml -i hosts
+python3 $(which ansible-playbook) ./ymls/setup.yml -i hosts

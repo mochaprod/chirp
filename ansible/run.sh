@@ -1,3 +1,3 @@
 # Run Playbook for MongoDB
-ansible-playbook setup.yml -i hosts
+ansible-playbook ./ymls/setup.yml -i hosts
 
