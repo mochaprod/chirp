@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "name": "chirp",
+  "version": "1.0.0",
+  "scripts": {},
+  "dependencies": {
+    "typescript": "^3.6.4"
+  }
+}

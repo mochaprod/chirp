@@ -8,10 +8,18 @@
         name: nodejs
         force_apt_get: yes
         update_cache: yes
+    - name: Install pm2
+      become: yes
+      npm:
+        global: yes
+        name: pm2
     - name: git clone repo
       git:
         repo: 'git@github.com:TaskSquirrel/chirp.git'
         dest: ~/chirp
         accept_hostkey: yes
         update: yes
-
+    - name: Stop old process
+      command: pm2 delete ws
+    - name: Start new process
+      command: pm2 start ~/chirp/packages/chirp-api/src/app.js --name ws
