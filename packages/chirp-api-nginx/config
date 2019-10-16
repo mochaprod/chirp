@@ -1,0 +1,11 @@
+upstream api {
+    server google.com;
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://api;
+    }
+}
