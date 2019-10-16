@@ -8,6 +8,11 @@
         name: nodejs
         force_apt_get: yes
         update_cache: yes
+    - name: Install npm
+      become: yes
+      apt:
+        name: npm
+        update_cache: yes
     - name: Install pm2
       become: yes
       npm:
@@ -19,6 +24,9 @@
         dest: ~/chirp
         accept_hostkey: yes
         update: yes
+    - name: Install project dependencies
+      npm:
+        path: ~/chirp/packages/chirp-api
     - name: Stop old process
       command: pm2 delete ws
     - name: Start new process

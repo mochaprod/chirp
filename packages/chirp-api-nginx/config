@@ -1,6 +1,6 @@
 upstream api {
-    server 192.168.122.10;
-    server 192.168.122.14;
+    server 192.168.122.10:6969;
+    server 192.168.122.14:6969;
 }
 
 server {
