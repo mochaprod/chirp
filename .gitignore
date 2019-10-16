@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+build/
 
 # MacOS stuff
 .DS_Store

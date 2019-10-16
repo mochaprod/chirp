@@ -1,7 +1,17 @@
-const express = require("express");
+import dotenv from "dotenv";
+import express from "express";
+
+dotenv.config();
+
+const {
+    PORT,
+    HOST
+} = process.env;
+
+const LISTEN_PORT = Number(PORT) || 6969;
+const LISTEN_HOST = HOST || "0.0.0.0";
+
 const app = express();
-const host = "0.0.0.0";
-const port = 6969;
 
 app.get("/", (req, res) => res.send("Hello World!"));
 
@@ -21,4 +31,8 @@ app.get("/item/:itemid", (req, res) => {
 
 app.post("/search", (req, res) => {});
 
-app.listen(port, host, () => console.log(`Listening on port ${port}!`));
+app.listen(
+    LISTEN_PORT,
+    LISTEN_HOST,
+    () => console.log(`API Server listening on port ${LISTEN_HOST}:${LISTEN_PORT}`)
+);
