@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
-import { Response, Request, RequestHandler } from "express";
+import { Response, RequestHandler } from "express";
 
-import { ResponseSchema } from "../models/express";
-import { CookieValidation, CookieValidator, UserCookieContent } from "../models/user";
+import { CookieValidator, UserCookieContent } from "../models/user";
+
+import { respond } from "../utils/response";
 
 const SECRET =
     "e56d36e0607ff48f06afc2d8d0cbee974b425ee6e377dfc0c057d144adcf9ac6bdaee569f89a3b064acdd6146206426c";
@@ -51,8 +52,6 @@ export const validateUserCookie: CookieValidator = (
         try {
             const decoded = jwt.verify(session, SECRET) as UserCookieContent;
 
-            console.log("Decoded: ", decoded);
-
             return {
                 valid: true,
                 invalidated,
@@ -100,9 +99,6 @@ export const ifLoggedInMiddleware: RequestHandler = (req, res, next) => {
             next();
         }
     } catch (e) {
-        res.send({
-            status: "error",
-            error: e.message
-        } as ResponseSchema);
+        respond(res, e.message);
     }
 };

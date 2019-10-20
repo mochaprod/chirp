@@ -1,7 +1,9 @@
 import crypto from "crypto";
 
-import { RequestHandlerDB, ResponseSchema } from "./models/express";
+import { RequestHandlerDB } from "./models/express";
 import { UserModel } from "./models/user";
+
+import { respond } from "./utils/response";
 
 const addUser: RequestHandlerDB<UserModel> = async (req, res, Users) => {
     const { body: {
@@ -31,14 +33,9 @@ const addUser: RequestHandlerDB<UserModel> = async (req, res, Users) => {
                 verificationToken: crypto.randomBytes(32).toString("hex")
             });
 
-        res.send({
-            status: "OK"
-        } as ResponseSchema);
+        respond(res);
     } catch (e) {
-        res.send({
-            status: "error",
-            error: e.message
-        } as ResponseSchema);
+        respond(res, e.message);
     }
 };
 

@@ -1,13 +1,12 @@
-import { ObjectId } from "mongodb";
+import { MongoDocument } from "./mongo";
 
 export enum ContentType {
     RETWEET = "RETWEET",
     REPLY = "REPLY"
 }
 
-export interface ItemModel {
-    _id: ObjectId;
-    id?: string;
+export interface ItemModel extends MongoDocument {
+    id: string;
     content: string;
     childType?: ContentType | null;
     parentID?: string;
@@ -18,5 +17,12 @@ export interface ItemModel {
     retweeted: number;
     property: {
         likes: number;
+        likedBy: string[];
     };
+}
+
+export interface LikesModel extends MongoDocument {
+    ownerID: string;
+    owner: string;
+    itemID: string;
 }

@@ -2,15 +2,21 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import express from "express";
 import cookieParser from "cookie-parser";
-import mongo, { ObjectId } from "mongodb";
+import morgan from "morgan";
+import mongo from "mongodb";
 
+import { ResponseSchema } from "./models/express";
+
+import verify from "./verify";
 import addUser from "./add-user";
 import addItem from "./add-item";
+import like from "./like";
 import login from "./login";
 import logout from "./logout";
 
 import connect, { Collections } from "./db/database";
 import { ifLoggedInMiddleware } from "./cookies/auth";
+import { respond } from "./utils/response";
 
 dotenv.config();
 
@@ -32,6 +38,7 @@ const app = express();
 app.disable("x-powered-by");
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(morgan("tiny"));
 
 let db: mongo.Db;
 let Collections: Collections;
@@ -49,38 +56,35 @@ app.post("/login", (req, res) => {
 app.use("/logout", ifLoggedInMiddleware);
 app.post("/logout", logout);
 
-app.post("/verify", (req, res) => { });
+app.post("/verify", (req, res) => verify(req, res, Collections.Users));
 
 app.use("/additem", ifLoggedInMiddleware);
 app.post("/additem", (req, res) => {
     addItem(req, res, Collections.Items);
 });
 
-app.get("/item/:itemid", (req, res) => {
+app.get("/item/:id", async (req, res) => {
     try {
-        db.collection("item").findOne({
-            _id: new ObjectId(req.params.itemid),
-        })
-            .then((result) => {
-                if (result === null) {
-                    throw new Error("Item not found!");
-                }
+        const result = await Collections.Items.findOne({
+            id: req.params.id
+        });
 
-                // Conform to API requirements
-                result.id = result._id;
-                res.send({
-                    status: "OK",
-                    item: result,
-                });
-            });
+        if (!result) {
+            throw new Error("Item not found!");
+        }
+
+        res.send({
+            status: "OK",
+            item: result
+        } as ResponseSchema);
     } catch (e) {
         // If given itemid is invalid, then ObjectID constructor will throw an error
-        res.send({
-            status: "error",
-            error: e.message,
-        });
+        respond(res, e.message);
     }
 });
+
+app.use("/item/:id/like", ifLoggedInMiddleware);
+app.get("/item/:id/like", (req, res) => like(req, res, Collections.Items));
 
 app.post("/search", async (req, res) => {
     let limit;
