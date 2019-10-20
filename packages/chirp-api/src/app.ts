@@ -1,63 +1,55 @@
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import express from "express";
-import * as mongo from "mongodb";
-import { ObjectId } from "mongodb";
+import cookieParser from "cookie-parser";
+import mongo, { ObjectId } from "mongodb";
+
+import connect, { Collections } from "./db/database";
+import addUser from "./add-user";
+import login from "./login";
+import logout from "./logout";
+import { ifLoggedInMiddleware } from "./cookies/auth";
 
 dotenv.config();
 
 const {
     PORT,
-    HOST
+    HOST,
+    DB_HOST,
+    DB_PORT,
+    DB_NAME: MONGO_DB
 } = process.env;
 
 const LISTEN_PORT = Number(PORT) || 6969;
 const LISTEN_HOST = HOST || "0.0.0.0";
+const MONGO_PORT = DB_PORT || 27017;
+const MONGO_HOST = DB_HOST || "localhost";
 
 const app = express();
 app.use(bodyParser.json());
-
-const MONGO_PORT = 27017;
-const MONGO_HOST = "localhost";
+app.use(cookieParser());
 
 let db: mongo.Db;
-
-mongo.MongoClient.connect(`mongodb://${MONGO_HOST}:${MONGO_PORT}/chirp`, (err, database) => {
-    if (err) { throw err; }
-
-    db = database.db("chirp");
-});
+let Collections: Collections;
 
 app.get("/", (req, res) => res.send("Hello World!"));
 
 app.post("/adduser", (req, res) => {
-    db.collection("user").insertOne({
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-    })
-        .then((result) => {
-            res.send({
-                status: "OK",
-            });
-        })
-        .catch((err) => {
-            res.send({
-                status: "error",
-                error: err,
-            });
-        });
+    addUser(req, res, Collections.Users);
 });
 
-app.post("/login", (req, res) => { });
+app.post("/login", (req, res) => {
+    login(req, res, Collections.Users);
+});
 
-app.post("/logout", (req, res) => { });
+app.use("/logout", ifLoggedInMiddleware);
+app.post("/logout", logout);
 
 app.post("/verify", (req, res) => { });
 
 app.post("/additem", (req, res) => {
     // TODO: User verification; add a username field
-    db.collection("item").insertOne({
+    Collections.Items.insertOne({
         content: req.body.content,
         childType: req.body.childType,
         timestamp: Math.round(Date.now() / 1000),
@@ -88,11 +80,7 @@ app.get("/item/:itemid", (req, res) => {
         })
             .then((result) => {
                 if (result === null) {
-                    res.send({
-                        status: "error",
-                        error: "Item not found!",
-                    });
-                    return;
+                    throw new Error("Item not found!");
                 }
 
                 // Conform to API requirements
@@ -102,8 +90,7 @@ app.get("/item/:itemid", (req, res) => {
                     item: result,
                 });
             });
-    }
-    catch (e) {
+    } catch (e) {
         // If given itemid is invalid, then ObjectID constructor will throw an error
         res.send({
             status: "error",
@@ -122,22 +109,36 @@ app.post("/search", async (req, res) => {
         limit = req.body.limit;
     }
 
-    let items: any[] = [];
-    await db.collection("item").find({
+    const items: any[] = [];
+
+    await Collections.Items.find({
         timestamp: { $lte: req.body.timestamp }
-    }, { limit: limit }).forEach((item) => {
+    }, { limit }).forEach((item) => {
         item.id = item._id;
         items.push(item);
-    })
+    });
 
     res.send({
         status: "OK",
-        items: items,
+        items
     });
 });
 
-app.listen(
-    LISTEN_PORT,
-    LISTEN_HOST,
-    () => console.log(`API Server listening on port ${LISTEN_HOST}:${LISTEN_PORT}`)
+mongo.MongoClient.connect(
+    `mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`,
+    {
+        useUnifiedTopology: true
+    },
+    (err, database) => {
+        if (err) { throw err; }
+
+        db = database.db(MONGO_DB);
+        Collections = connect(db);
+
+        app.listen(
+            LISTEN_PORT,
+            LISTEN_HOST,
+            () => console.log(`API Server listening on port ${LISTEN_HOST}:${LISTEN_PORT}`)
+        );
+    }
 );
