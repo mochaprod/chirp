@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import { Response, Request, RequestHandler } from "express";
+
 import { ResponseSchema } from "../models/express";
+import { CookieValidation, CookieValidator, UserCookieContent } from "../models/user";
 
 const SECRET =
     "e56d36e0607ff48f06afc2d8d0cbee974b425ee6e377dfc0c057d144adcf9ac6bdaee569f89a3b064acdd6146206426c";
@@ -9,11 +11,16 @@ export const removeUserCookie = (response: Response) => {
     response.clearCookie("session");
 };
 
-export const setUserCookie = (response: Response, username: string) => {
+export const setUserCookie = (
+    response: Response,
+    id: string,
+    username: string
+) => {
     response.cookie(
         "session",
         jwt.sign(
             {
+                id,
                 username
             },
             SECRET
@@ -24,12 +31,17 @@ export const setUserCookie = (response: Response, username: string) => {
     );
 };
 
-export const validateUserCookie = (request: Request, response?: Response) => {
+export const validateUserCookie: CookieValidator = (
+    request,
+    response
+) => {
+    let invalidated = false;
     const { cookies } = request;
 
     if (!cookies) {
         return {
-            valid: false
+            valid: false,
+            invalidated
         };
     }
 
@@ -37,35 +49,60 @@ export const validateUserCookie = (request: Request, response?: Response) => {
 
     if (session) {
         try {
-            const decoded = jwt.verify(session, SECRET);
+            const decoded = jwt.verify(session, SECRET) as UserCookieContent;
+
+            console.log("Decoded: ", decoded);
 
             return {
                 valid: true,
+                invalidated,
                 decoded
             };
         } catch (e) {
             // Clear cookie on failure
 
             if (response) {
+                invalidated = true;
+
                 removeUserCookie(response);
             }
         }
     }
 
     return {
-        valid: false
+        valid: false,
+        invalidated
     };
 };
 
 export const ifLoggedInMiddleware: RequestHandler = (req, res, next) => {
-    const { valid } = validateUserCookie(req);
+    const { valid, invalidated, decoded } = validateUserCookie(req);
 
-    if (!valid) {
+    try {
+        if (!valid) {
+            if (invalidated) {
+                throw Error("Failed to verify user credentials!");
+            }
+
+            throw new Error("You're not logged in!");
+        } else {
+            if (!decoded) {
+                throw new Error("Failed to verify");
+            }
+
+            const user = {
+                id: decoded.id,
+                name: decoded.username,
+            };
+
+            req.user = user;
+
+            next();
+        }
+    } catch (e) {
         res.send({
             status: "error",
-            message: "You're not logged in!"
+            error: e.message
         } as ResponseSchema);
-    } else {
-        next();
     }
 };

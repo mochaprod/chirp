@@ -37,7 +37,7 @@ const addUser: RequestHandlerDB<UserModel> = async (req, res, Users) => {
     } catch (e) {
         res.send({
             status: "error",
-            message: e.message
+            error: e.message
         } as ResponseSchema);
     }
 };

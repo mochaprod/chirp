@@ -9,7 +9,9 @@ export type RequestHandlerDB<P = any> = (
 
 export interface ResponseSchema {
     status: "OK" | "error";
-    message: string | undefined | null;
+    error?: string;
+
+    message?: string;
 
     [key: string]: any;
 }

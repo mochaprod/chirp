@@ -4,10 +4,12 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import mongo, { ObjectId } from "mongodb";
 
-import connect, { Collections } from "./db/database";
 import addUser from "./add-user";
+import addItem from "./add-item";
 import login from "./login";
 import logout from "./logout";
+
+import connect, { Collections } from "./db/database";
 import { ifLoggedInMiddleware } from "./cookies/auth";
 
 dotenv.config();
@@ -26,6 +28,8 @@ const MONGO_PORT = DB_PORT || 27017;
 const MONGO_HOST = DB_HOST || "localhost";
 
 const app = express();
+
+app.disable("x-powered-by");
 app.use(bodyParser.json());
 app.use(cookieParser());
 
@@ -47,30 +51,9 @@ app.post("/logout", logout);
 
 app.post("/verify", (req, res) => { });
 
+app.use("/additem", ifLoggedInMiddleware);
 app.post("/additem", (req, res) => {
-    // TODO: User verification; add a username field
-    Collections.Items.insertOne({
-        content: req.body.content,
-        childType: req.body.childType,
-        timestamp: Math.round(Date.now() / 1000),
-        username: "",
-        retweeted: 0,
-        property: {
-            likes: 0,
-        },
-    })
-        .then((result) => {
-            res.send({
-                status: "OK",
-                id: result.insertedId,
-            });
-        })
-        .catch((err) => {
-            res.send({
-                status: "error",
-                error: err,
-            });
-        });
+    addItem(req, res, Collections.Items);
 });
 
 app.get("/item/:itemid", (req, res) => {
@@ -114,7 +97,7 @@ app.post("/search", async (req, res) => {
     await Collections.Items.find({
         timestamp: { $lte: req.body.timestamp }
     }, { limit }).forEach((item) => {
-        item.id = item._id;
+        item.id = item._id.toHexString();
         items.push(item);
     });
 

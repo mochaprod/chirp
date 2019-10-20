@@ -21,8 +21,12 @@ const login: RequestHandlerDB<UserModel> = async (req, res, Users) => {
         const user = await Users.findOne({ username });
 
         if (user && password === user.password) {
+            // if (!user.verified) {
+                // throw new Error("You're not verified yet!");
+            // }
+
             // Send email
-            setUserCookie(res, username);
+            setUserCookie(res, user._id.toHexString(), username);
 
             res.send({
                 status: "OK"
@@ -33,7 +37,7 @@ const login: RequestHandlerDB<UserModel> = async (req, res, Users) => {
     } catch (e) {
         res.send({
             status: "error",
-            message: e.message
+            error: e.message
         } as ResponseSchema);
     }
 };
