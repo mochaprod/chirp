@@ -1,6 +1,8 @@
 - name: Webserver
   hosts: webserver
   remote_user: ubuntu
+  vars:
+    root: '~/chirp/packages/chirp-api'
   tasks:
     - name: Install Node.js
       become: yes
@@ -26,8 +28,8 @@
         update: yes
     - name: Install project dependencies
       npm:
-        path: ~/chirp/packages/chirp-api
+        path: {{ root }}
     - name: Stop old process
       command: pm2 delete ws
     - name: Start new process
-      command: pm2 start ~/chirp/packages/chirp-api/src/app.js --name ws
+      command: pm2 start npm --name ws -- start --prefix {{ root }}
