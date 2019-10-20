@@ -25,7 +25,9 @@ const {
     HOST,
     DB_HOST,
     DB_PORT,
-    DB_NAME: MONGO_DB
+    DB_NAME: MONGO_DB,
+    DB_USER,
+    DB_PASSWORD
 } = process.env;
 
 const LISTEN_PORT = Number(PORT) || 6969;
@@ -111,8 +113,12 @@ app.post("/search", async (req, res) => {
     });
 });
 
+const DB_CREDENTIALS = DB_USER && DB_PASSWORD
+    ? `${DB_USER}:${DB_PASSWORD}@`
+    : "";
+
 mongo.MongoClient.connect(
-    `mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`,
+    `mongodb://${DB_CREDENTIALS}${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`,
     {
         useUnifiedTopology: true
     },
