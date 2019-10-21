@@ -2,13 +2,23 @@ import shortid from "shortid";
 
 import { RequestHandlerDB, ResponseSchema } from "./models/express";
 import { ItemModel } from "./models/item";
+import { respond } from "./utils/response";
 
 const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
     try {
-        const { user, body } = req;
+        const { user, body: {
+            childType,
+            content,
+            parent,
+            media
+        } } = req;
 
         if (!user) {
-            throw new Error("Internal error");
+            throw new Error("Internal error!");
+        }
+
+        if (!content) {
+            throw new Error("No content was provided!");
         }
 
         const itemID = shortid.generate();
@@ -18,11 +28,11 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             ownerID: user.id,
             username: user.name,
             retweeted: 0,
-            content: body.content,
-            childType: body.childType,
-            parentID: body.parent,
+            content,
+            childType,
+            parentID: parent,
             timestamp: Math.round(Date.now() / 1000),
-            media: body.media,
+            media,
             property: {
                 likes: 0,
                 likedBy: []
@@ -34,11 +44,7 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             id: itemID
         } as ResponseSchema);
     } catch (e) {
-        res
-            .status(500)
-            .send({
-                status: "error"
-            } as ResponseSchema);
+        respond(res, e.message);
     }
 };
 
