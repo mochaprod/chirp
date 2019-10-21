@@ -1,3 +1,5 @@
+import shortid from "shortid";
+
 import { RequestHandlerDB, ResponseSchema } from "./models/express";
 import { ItemModel } from "./models/item";
 
@@ -9,7 +11,10 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             throw new Error("Internal error");
         }
 
-        const item = await Items.insertOne({
+        const itemID = shortid.generate();
+
+        await Items.insertOne({
+            id: itemID,
             ownerID: user.id,
             username: user.name,
             retweeted: 0,
@@ -19,18 +24,21 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             timestamp: Math.round(Date.now() / 1000),
             media: body.media,
             property: {
-                likes: 0
+                likes: 0,
+                likedBy: []
             }
         });
 
         res.send({
             status: "OK",
-            id: item.insertedId.toHexString()
+            id: itemID
         } as ResponseSchema);
     } catch (e) {
-        res.send({
-            status: "error"
-        } as ResponseSchema);
+        res
+            .status(500)
+            .send({
+                status: "error"
+            } as ResponseSchema);
     }
 };
 

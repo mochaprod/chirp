@@ -1,7 +1,7 @@
 import { Db, Collection } from "mongodb";
 
 import { UserModel } from "../models/user";
-import { ItemModel } from "../models/item";
+import { ItemModel, LikesModel } from "../models/item";
 
 export interface Collections {
     Users: Collection<UserModel>;
@@ -11,7 +11,7 @@ export interface Collections {
 const connect = (db: Db) => {
     return {
         Users: db.collection<UserModel>("users"),
-        Items: db.collection<ItemModel>("items")
+        Items: db.collection<ItemModel>("items"),
     } as Collections;
 };
 

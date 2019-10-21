@@ -1,11 +1,12 @@
 import crypto from "crypto";
 import { createTransport } from 'nodemailer';
 
-import { RequestHandlerDB, ResponseSchema } from "./models/express";
+import { RequestHandlerDB } from "./models/express";
 import { UserModel } from "./models/user";
+import { respond } from "./utils/response";
 
-const HOST = "chirp.cloud.compas.cs.stonybrook.edu";
-const HOST_EMAIL = `chirp@${HOST}`;
+const HOST = "gmail.com";
+const HOST_EMAIL = `356.chirp@${HOST}`;
 const TITLE = "Email verification for Chirp"
 
 const transporter = createTransport({
@@ -59,14 +60,9 @@ const addUser: RequestHandlerDB<UserModel> = async (req, res, Users) => {
                 verificationToken: verificationToken
             });
 
-        res.send({
-            status: "OK"
-        } as ResponseSchema);
+        respond(res);
     } catch (e) {
-        res.send({
-            status: "error",
-            error: e.message
-        } as ResponseSchema);
+        respond(res, e.message);
     }
 };
 

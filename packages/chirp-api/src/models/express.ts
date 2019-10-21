@@ -5,7 +5,7 @@ export type RequestHandlerDB<P = any> = (
     req: Request,
     res: Response,
     collection: Collection<P>
-) => Promise<any>;
+) => Promise<any> | void;
 
 export interface ResponseSchema {
     status: "OK" | "error";
