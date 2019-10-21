@@ -26,6 +26,7 @@
         dest: ~/chirp
         accept_hostkey: yes
         update: yes
+        force: yes
     - name: Install project dependencies
       npm:
         path: "{{ root }}"
