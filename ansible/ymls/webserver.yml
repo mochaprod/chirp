@@ -28,8 +28,8 @@
         update: yes
     - name: Install project dependencies
       npm:
-        path: {{ root }}
+        path: "{{ root }}"
     - name: Stop old process
       command: pm2 delete ws
     - name: Start new process
-      command: pm2 start npm --name ws -- start --prefix {{ root }}
+      command: "pm2 start npm --name ws -- start --prefix {{ root }}"
