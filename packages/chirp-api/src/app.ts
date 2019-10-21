@@ -6,6 +6,7 @@ import morgan from "morgan";
 import mongo from "mongodb";
 
 import { ResponseSchema } from "./models/express";
+import { ItemPayload } from "./models/item";
 
 import verify from "./verify";
 import addUser from "./add-user";
@@ -75,9 +76,21 @@ app.get("/item/:id", async (req, res) => {
             throw new Error("Item not found!");
         }
 
+        const item: ItemPayload = {
+            id: result.id,
+            username: result.ownerName,
+            content: result.content,
+            childType: result.childType,
+            timestamp: result.timestamp,
+            retweeted: result.retweeted,
+            property: {
+                likes: result.likes
+            }
+        };
+
         res.send({
             status: "OK",
-            item: result
+            item
         } as ResponseSchema);
     } catch (e) {
         // If given itemid is invalid, then ObjectID constructor will throw an error

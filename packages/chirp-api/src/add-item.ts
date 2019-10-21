@@ -26,17 +26,15 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
         await Items.insertOne({
             id: itemID,
             ownerID: user.id,
-            username: user.name,
+            ownerName: user.name,
             retweeted: 0,
             content,
             childType,
             parentID: parent,
             timestamp: Math.round(Date.now() / 1000),
             media,
-            property: {
-                likes: 0,
-                likedBy: []
-            }
+            likes: 0,
+            likedBy: []
         });
 
         res.send({
