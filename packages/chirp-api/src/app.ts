@@ -112,7 +112,10 @@ app.post("/search", async (req, res) => {
             limit = reqLimit;
         }
 
-        if (typeof reqTimestamp !== "number" || reqTimestamp < 0) {
+        if (
+            (typeof reqTimestamp !== "number" && reqTimestamp !== undefined)
+            || reqTimestamp < 0
+        ) {
             throw new Error(`Timestamp value "${reqTimestamp}" is malformed!`);
         }
 
