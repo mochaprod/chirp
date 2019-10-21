@@ -10,7 +10,7 @@ const verificationBody = (
 
     const link = `http://${HOST}/verify?u=${username}&c=${key}`;
 
-    return `Hi ${username}! Verify your email with the code below:\n\nverification key: <${key}>\n\nOr use this convenient link:\n\n${link}`;
+    return `Hi ${username}! Verify your email with the code below:\n\nvalidation key: <${key}>\n\nOr use this convenient link:\n\n${link}`;
 };
 
 const createMailClient = () => {
