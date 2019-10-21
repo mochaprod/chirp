@@ -9,8 +9,10 @@ const verificationBody = (
     const HOST = EXTERNAL_HOST || "localhost";
 
     const link = `http://${HOST}/verify?u=${username}&c=${key}`;
+    const keyText = `validation key: <${key}>`;
 
-    return `Hi ${username}! Verify your email with the code below:\n\nvalidation key: <${key}>\n\nOr use this convenient link:\n\n${link}`;
+    // return `Hi ${username}! Verify your email with the code below:\n\n${keyText}\n\nOr use this convenient link:\n\n${link}`;
+    return keyText;
 };
 
 const createMailClient = () => {

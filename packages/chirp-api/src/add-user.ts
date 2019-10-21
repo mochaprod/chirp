@@ -25,7 +25,7 @@ const addUser: RequestHandlerDB<UserModel> = async (req, res, Users) => {
             throw new Error("Username or email already exists!");
         }
 
-        const verificationToken = crypto.randomBytes(32).toString("hex");
+        const verificationToken = crypto.randomBytes(16).toString("hex");
 
         mailman()(
             email,
