@@ -1,9 +1,25 @@
 import crypto from "crypto";
+import { createTransport } from 'nodemailer';
 
 import { RequestHandlerDB } from "./models/express";
 import { UserModel } from "./models/user";
-
 import { respond } from "./utils/response";
+
+const HOST = "gmail.com";
+const HOST_EMAIL = `356.chirp@${HOST}`;
+const TITLE = "Email verification for Chirp"
+
+const transporter = createTransport({
+    port: 2525,
+    host: "localhost",
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+const generateMailTemplate = (username:string, key: string): string => {
+    return `Hi ${username}! See below for your verification key: \nverification key: <${key}>`;
+}
 
 const addUser: RequestHandlerDB<UserModel> = async (req, res, Users) => {
     const { body: {
@@ -24,13 +40,24 @@ const addUser: RequestHandlerDB<UserModel> = async (req, res, Users) => {
             throw new Error("Username or email already exists!");
         }
 
+        let verificationToken = crypto.randomBytes(32).toString("hex");
+
+        const mail = {
+            from: HOST_EMAIL,
+            to: String(email),
+            subject: TITLE,
+            text: generateMailTemplate(username, verificationToken)
+        };
+
+        transporter.sendMail(mail);
+
         await Users
             .insertOne({
                 username,
                 email,
                 password,
                 verified: false,
-                verificationToken: crypto.randomBytes(32).toString("hex")
+                verificationToken: verificationToken
             });
 
         respond(res);
