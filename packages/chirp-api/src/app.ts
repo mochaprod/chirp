@@ -89,28 +89,51 @@ app.use("/item/:id/like", ifLoggedInMiddleware);
 app.get("/item/:id/like", (req, res) => like(req, res, Collections.Items));
 
 app.post("/search", async (req, res) => {
-    let limit;
-    if (req.body.limit === undefined) {
-        limit = 25;
-    } else if (req.body.limit > 100) {
-        limit = 100;
-    } else {
-        limit = req.body.limit;
+    try {
+        const { body: {
+            limit: reqLimit, timestamp: reqTimestamp
+        } } = req;
+
+        if (typeof reqLimit !== "number" && reqLimit !== undefined) {
+            throw new Error(`Limit value super incorrect!`);
+        }
+
+        if (reqLimit < 0) {
+            throw new Error(`Limit value ${reqLimit} is malformed!`);
+        }
+
+        let limit;
+
+        if (!reqLimit) {
+            limit = 25;
+        } else if (reqLimit > 100) {
+            limit = 100;
+        } else {
+            limit = reqLimit;
+        }
+
+        if (typeof reqTimestamp !== "number" || reqTimestamp < 0) {
+            throw new Error(`Timestamp value "${reqTimestamp}" is malformed!`);
+        }
+
+        const timestamp = reqTimestamp || Math.round(Date.now() / 1000);
+
+        const items: any[] = [];
+
+        await Collections.Items.find({
+            timestamp: { $lte: timestamp }
+        }, { limit }).forEach((item) => {
+            item.id = item._id.toHexString();
+            items.push(item);
+        });
+
+        res.send({
+            status: "OK",
+            items
+        });
+    } catch (e) {
+        respond(res, e.message);
     }
-
-    const items: any[] = [];
-
-    await Collections.Items.find({
-        timestamp: { $lte: req.body.timestamp }
-    }, { limit }).forEach((item) => {
-        item.id = item._id.toHexString();
-        items.push(item);
-    });
-
-    res.send({
-        status: "OK",
-        items
-    });
 });
 
 const DB_CREDENTIALS = DB_USER && DB_PASSWORD
