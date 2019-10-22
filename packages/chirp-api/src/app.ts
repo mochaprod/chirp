@@ -8,12 +8,15 @@ import mongo from "mongodb";
 import { ResponseSchema } from "./models/express";
 import { ItemPayload } from "./models/item";
 
+import createUserRouter from "./routes/user";
+
 import verify from "./verify";
 import addUser from "./add-user";
 import addItem from "./add-item";
 import like from "./like";
 import login from "./login";
 import logout from "./logout";
+import follow from "./routes/user/follow";
 
 import connect, { Collections } from "./db/database";
 import { ifLoggedInMiddleware } from "./cookies/auth";
@@ -151,6 +154,21 @@ app.post("/search", async (req, res) => {
         respond(res, e.message);
     }
 });
+
+app.use("/follow", ifLoggedInMiddleware);
+app.post("/follow", (req, res) => follow(
+    req,
+    res,
+    Collections.Follows,
+    Collections.Users
+));
+
+app.use("/user", (req, res, next) => createUserRouter(
+    req,
+    res,
+    next,
+    Collections
+));
 
 const DB_CREDENTIALS = DB_USER && DB_PASSWORD
     ? `${DB_USER}:${DB_PASSWORD}@`
