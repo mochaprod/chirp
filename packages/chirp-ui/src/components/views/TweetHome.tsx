@@ -96,6 +96,11 @@ const TweetHome: React.FC = () => {
                 Tweet
             </button>
             <Link
+                to="/search"
+            >
+                Search tweets
+            </Link>
+            <Link
                 to="/signout"
             >
                 Sign out

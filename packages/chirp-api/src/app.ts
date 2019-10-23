@@ -1,3 +1,4 @@
+import path from "path";
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -47,11 +48,10 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(morgan("tiny"));
+app.use(express.static(path.join(__dirname, "../../chirp-ui-static/")));
 
 let db: mongo.Db;
 let Collections: Collections;
-
-app.get("/", (req, res) => res.send("Hello World!"));
 
 app.post("/adduser", (req, res) => {
     addUser(req, res, Collections.Users);
@@ -186,6 +186,10 @@ app.use("/user", (req, res, next) => createUserRouter(
     next,
     Collections
 ));
+
+app.get("*", (_, res) => {
+    res.sendFile(path.join(__dirname, "../../chirp-ui-static/index.html"));
+});
 
 const DB_CREDENTIALS = DB_USER && DB_PASSWORD
     ? `${DB_USER}:${DB_PASSWORD}@`
