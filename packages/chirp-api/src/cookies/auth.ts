@@ -12,6 +12,10 @@ export const removeUserCookie = (response: Response) => {
     response.clearCookie("session");
 };
 
+export const signUserToken = (id: string, username: string) => jwt.sign(
+    { id, username }, SECRET
+);
+
 export const setUserCookie = (
     response: Response,
     id: string,
@@ -19,15 +23,10 @@ export const setUserCookie = (
 ) => {
     response.cookie(
         "session",
-        jwt.sign(
-            {
-                id,
-                username
-            },
-            SECRET
-        ),
+        signUserToken(id, username),
         {
-            maxAge: 60 * 60 * 24 * 7
+            maxAge: 604800,
+            httpOnly: true
         }
     );
 };
@@ -37,18 +36,39 @@ export const validateUserCookie: CookieValidator = (
     response
 ) => {
     let invalidated = false;
-    const { cookies } = request;
 
-    if (!cookies) {
+    const {
+        headers: { authorization },
+        cookies: { session }
+    } = request;
+
+    if (!session && !authorization) {
         return {
             valid: false,
             invalidated
         };
     }
 
-    const { session } = cookies;
+    if (authorization) {
+        // Use authorization bearer token
+        const regex = /^Bearer ([^\s]+)$/;
+        const match = regex.exec(authorization);
 
-    if (session) {
+        if (!match) {
+            invalidated = true;
+        } else {
+            const decoded = jwt.verify(
+                match[1],
+                SECRET
+            ) as UserCookieContent;
+
+            return {
+                valid: true,
+                invalidated,
+                decoded
+            };
+        }
+    } else if (session) {
         try {
             const decoded = jwt.verify(session, SECRET) as UserCookieContent;
 

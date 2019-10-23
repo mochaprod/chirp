@@ -1,6 +1,7 @@
-import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import mongo from "mongodb";
@@ -42,6 +43,7 @@ const MONGO_HOST = DB_HOST || "localhost";
 const app = express();
 
 app.disable("x-powered-by");
+app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(morgan("tiny"));
@@ -137,14 +139,29 @@ app.post("/search", async (req, res) => {
 
         const timestamp = reqTimestamp || Math.round(Date.now() / 1000);
 
-        const items: any[] = [];
+        const items = await Collections.Items.find({
+            timestamp: { $lte: timestamp },
+        })
+            .sort({
+                timestamp: -1
+            })
+            .limit(limit)
+            .map<ItemPayload>((result) => {
+                const item: ItemPayload = {
+                    id: result.id,
+                    username: result.ownerName,
+                    content: result.content,
+                    childType: result.childType,
+                    timestamp: result.timestamp,
+                    retweeted: result.retweeted,
+                    property: {
+                        likes: result.likes
+                    }
+                };
 
-        await Collections.Items.find({
-            timestamp: { $lte: timestamp }
-        }, { limit }).forEach((item) => {
-            item.id = item._id.toHexString();
-            items.push(item);
-        });
+                return item;
+            })
+            .toArray();
 
         res.send({
             status: "OK",
