@@ -16,12 +16,13 @@ import verify from "./verify";
 import addUser from "./add-user";
 import addItem from "./add-item";
 import like from "./like";
+import deleteItem from "./delete-item";
 import login from "./login";
 import logout from "./logout";
 import follow from "./routes/user/follow";
 
 import connect, { Collections } from "./db/database";
-import { ifLoggedInMiddleware } from "./cookies/auth";
+import { loggedInOnly } from "./cookies/auth";
 import { respond } from "./utils/response";
 
 dotenv.config();
@@ -53,6 +54,16 @@ app.use(express.static(path.join(__dirname, "../../chirp-ui-static/")));
 let db: mongo.Db;
 let Collections: Collections;
 
+app.use(
+    [
+        "/logout",
+        "/additem",
+        "/item/:id/like",
+        "/follow"
+    ],
+    loggedInOnly()
+);
+
 app.post("/adduser", (req, res) => {
     addUser(req, res, Collections.Users);
 });
@@ -61,12 +72,10 @@ app.post("/login", (req, res) => {
     login(req, res, Collections.Users);
 });
 
-app.use("/logout", ifLoggedInMiddleware);
 app.post("/logout", logout);
 
 app.post("/verify", (req, res) => verify(req, res, Collections.Users));
 
-app.use("/additem", ifLoggedInMiddleware);
 app.post("/additem", (req, res) => {
     addItem(req, res, Collections.Items);
 });
@@ -103,8 +112,9 @@ app.get("/item/:id", async (req, res) => {
     }
 });
 
-app.use("/item/:id/like", ifLoggedInMiddleware);
 app.get("/item/:id/like", (req, res) => like(req, res, Collections.Items));
+
+app.delete("/item/:id", (req, res) => deleteItem(req, res, Collections.Items));
 
 app.post("/search", async (req, res) => {
     try {
@@ -172,7 +182,6 @@ app.post("/search", async (req, res) => {
     }
 });
 
-app.use("/follow", ifLoggedInMiddleware);
 app.post("/follow", (req, res) => follow(
     req,
     res,

@@ -1,7 +1,7 @@
 import { Router, Response, Request, NextFunction } from "express";
 
 import { Collections } from "../../db/database";
-import { ifLoggedInMiddleware } from "../../cookies/auth";
+import { loggedInOnly } from "../../cookies/auth";
 import { respond } from "../../utils/response";
 
 import root from "./root";
@@ -14,7 +14,7 @@ function createUserRouter(
 ) {
     const userRouter = Router();
 
-    userRouter.use("/", ifLoggedInMiddleware);
+    userRouter.use("/", loggedInOnly);
     userRouter.get("/", (req, res) => {
         const { user } = req;
 

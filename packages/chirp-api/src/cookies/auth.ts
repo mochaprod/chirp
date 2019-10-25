@@ -94,7 +94,7 @@ export const validateUserCookie: CookieValidator = (
     };
 };
 
-export const ifLoggedInMiddleware: RequestHandler = (req, res, next) => {
+export const loggedInOnly: () => RequestHandler = () => (req, res, next) => {
     const { valid, invalidated, decoded } = validateUserCookie(req);
 
     try {
