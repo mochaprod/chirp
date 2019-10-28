@@ -94,7 +94,9 @@ export const validateUserCookie: CookieValidator = (
     };
 };
 
-export const loggedInOnly: () => RequestHandler = () => (req, res, next) => {
+export const loggedInOnly: (not?: boolean) => RequestHandler = () => (
+    req, res, next
+) => {
     const { valid, invalidated, decoded } = validateUserCookie(req);
 
     try {

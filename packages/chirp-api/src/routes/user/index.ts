@@ -5,6 +5,9 @@ import { loggedInOnly } from "../../cookies/auth";
 import { respond } from "../../utils/response";
 
 import root from "./root";
+import posts from "./posts";
+import followers from "./followers";
+import following from "./following";
 
 function createUserRouter(
     request: Request,
@@ -14,7 +17,7 @@ function createUserRouter(
 ) {
     const userRouter = Router();
 
-    userRouter.use("/", loggedInOnly);
+    userRouter.get("/", loggedInOnly());
     userRouter.get("/", (req, res) => {
         const { user } = req;
 
@@ -35,9 +38,15 @@ function createUserRouter(
     userRouter.get("/:user", (req, res) => root(
         req, res, collections.Follows, collections.Users
     ));
-    userRouter.get("/:user/posts");
-    userRouter.get("/:user/followers");
-    userRouter.get("/:user/following");
+    userRouter.get("/:user/posts", (req, res) => posts(
+        req, res, collections.Items
+    ));
+    userRouter.get("/:user/followers", (req, res) => followers(
+        req, res, collections.Follows
+    ));
+    userRouter.get("/:user/following", (req, res) => following(
+        req, res, collections.Follows
+    ));
 
     return userRouter(request, response, next);
 }
