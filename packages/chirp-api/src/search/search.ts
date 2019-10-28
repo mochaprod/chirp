@@ -2,11 +2,20 @@ import { RequestHandlerDB } from "../models/express";
 import { ItemPayload, ItemModel } from "../models/item";
 
 import { respond } from "../utils/response";
+import { FollowsModel } from "../models/user";
 
-const search: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
+const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items, Follows) => {
     try {
+        if (!Follows) {
+            throw new Error("Internal error: could not connect to users table!");
+        }
+
         const { body: {
-            limit: reqLimit, timestamp: reqTimestamp
+            limit: reqLimit,
+            timestamp: reqTimestamp,
+            q: reqQuery,
+            username: reqUsername,
+            following: reqFollowing
         } } = req;
 
         if (typeof reqLimit !== "number" && reqLimit !== undefined) {
@@ -36,29 +45,57 @@ const search: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
 
         const timestamp = reqTimestamp || Math.round(Date.now() / 1000);
 
-        const items = await Items.find({
-            timestamp: { $lte: timestamp },
-        })
+        const result = await Items
+            .find({
+                timestamp: { $lte: timestamp },
+                ownerName: reqUsername
+            })
             .sort({
                 timestamp: -1
             })
-            .limit(limit)
-            .map<ItemPayload>((result) => {
+            .map<ItemPayload>((payload) => {
                 const item: ItemPayload = {
-                    id: result.id,
-                    username: result.ownerName,
-                    content: result.content,
-                    childType: result.childType,
-                    timestamp: result.timestamp,
-                    retweeted: result.retweeted,
+                    id: payload.id,
+                    username: payload.ownerName,
+                    content: payload.content,
+                    childType: payload.childType,
+                    timestamp: payload.timestamp,
+                    retweeted: payload.retweeted,
                     property: {
-                        likes: result.likes
+                        likes: payload.likes
                     }
                 };
 
                 return item;
             })
             .toArray();
+
+        // Application-level queries
+
+        let items = result;
+
+        if (reqFollowing) {
+            const { user } = req;
+
+            if (!user) {
+                throw new Error("You aren't logged in for this query!");
+            }
+
+            const usersFollowing = await Follows
+                .find({ user: user.name })
+                .map(({ follows }) => follows)
+                .toArray();
+
+            items = items
+                .filter(({ username }) => usersFollowing.includes(username));
+        }
+
+        if (reqQuery) {
+            items = result
+                .filter(({ content }) => content.startsWith(reqQuery));
+        }
+
+        items = items.slice(0, limit);
 
         res.send({
             status: "OK",
