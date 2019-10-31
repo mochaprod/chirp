@@ -1,0 +1,22 @@
+- name: Install Cassandra
+  hosts: cassandra
+  remote_user: ubuntu
+  tasks:
+  - name: Add Cassandra public key
+    shell: "curl https://www.apache.org/dist/cassandra/KEYS | sudo apt-key add -"
+    args:
+      warn: false
+  - name: Create list file for Cassandra
+    become: yes
+    lineinfile:
+      line: "deb http://www.apache.org/dist/cassandra/debian 311x main"
+      dest: "/etc/apt/sources.list.d/cassandra.sources.list"
+      state: present
+      create: yes
+  - name: Actually install Cassandra
+    become: yes
+    apt:
+      name: cassandra
+      state: latest
+      force_apt_get: yes
+      update_cache: yes
