@@ -97,8 +97,12 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
         }
 
         if (reqQuery) {
+            const q = `${reqQuery}`;
+
             items = result
-                .filter(({ content }) => content.startsWith(reqQuery));
+                .filter(({ content }) => content
+                    .toLowerCase()
+                    .startsWith(q.toLowerCase()));
         }
 
         items = items.slice(0, limit);
