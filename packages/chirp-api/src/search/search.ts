@@ -1,3 +1,5 @@
+import { FilterQuery } from "mongodb";
+
 import { RequestHandlerDB } from "../models/express";
 import { ItemPayload, ItemModel } from "../models/item";
 
@@ -44,12 +46,16 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
         }
 
         const timestamp = reqTimestamp || Math.round(Date.now() / 1000);
+        const query: FilterQuery<ItemModel> = {
+            timestamp: { $lte: timestamp }
+        };
+
+        if (reqUsername) {
+            query.ownerName = reqUsername;
+        }
 
         const result = await Items
-            .find({
-                timestamp: { $lte: timestamp },
-                ownerName: reqUsername
-            })
+            .find(query)
             .sort({
                 timestamp: -1
             })
