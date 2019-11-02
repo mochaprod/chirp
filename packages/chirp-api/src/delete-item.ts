@@ -4,12 +4,22 @@ import { ItemModel } from "./models/item";
 import { respond } from "./utils/response";
 
 const deleteItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
-    const { params: {
-        id
-    } } = req;
+    const {
+        user,
+        params: {
+            id
+        }
+    } = req;
 
     try {
-        const { deletedCount } = await Items.deleteOne({ id });
+        if (!user) {
+            throw new Error("[app.delete] Internal error!");
+        }
+
+        const { deletedCount } = await Items.deleteOne({
+            id,
+            ownerName: user.name
+        });
 
         if (deletedCount && deletedCount === 1) {
             respond(res);

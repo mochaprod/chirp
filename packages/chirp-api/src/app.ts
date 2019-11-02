@@ -115,7 +115,11 @@ app.get("/item/:id", async (req, res) => {
 
 app.get("/item/:id/like", (req, res) => like(req, res, Collections.Items));
 
-app.delete("/item/:id", (req, res) => deleteItem(req, res, Collections.Items));
+app.delete(
+    "/item/:id",
+    loggedInOnly(),
+    (req, res) => deleteItem(req, res, Collections.Items)
+);
 
 app.post("/search", async (req, res) => search(
     req, res, Collections.Items, Collections.Follows
