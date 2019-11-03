@@ -1,24 +1,34 @@
-import bodyParser from "body-parser";
+import path from "path";
 import dotenv from "dotenv";
 import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import mongo from "mongodb";
 
 import { ResponseSchema } from "./models/express";
+import { ItemPayload } from "./models/item";
+
+import createUserRouter from "./routes/user";
 
 import verify from "./verify";
 import addUser from "./add-user";
 import addItem from "./add-item";
 import like from "./like";
+import deleteItem from "./delete-item";
 import login from "./login";
 import logout from "./logout";
+import follow from "./routes/user/follow";
+import search from "./search/search";
 
 import connect, { Collections } from "./db/database";
-import { ifLoggedInMiddleware } from "./cookies/auth";
+import { loggedInOnly } from "./cookies/auth";
 import { respond } from "./utils/response";
+import elastic from "./utils/elasticsearch";
 
 dotenv.config();
+elastic();
 
 const {
     PORT,
@@ -38,14 +48,24 @@ const MONGO_HOST = DB_HOST || "localhost";
 const app = express();
 
 app.disable("x-powered-by");
+app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(morgan("tiny"));
+app.use(express.static(path.join(__dirname, "../../chirp-ui-static/")));
 
 let db: mongo.Db;
 let Collections: Collections;
 
-app.get("/", (req, res) => res.send("Hello World!"));
+app.use(
+    [
+        "/logout",
+        "/additem",
+        "/item/:id/like",
+        "/follow"
+    ],
+    loggedInOnly()
+);
 
 app.post("/adduser", (req, res) => {
     addUser(req, res, Collections.Users);
@@ -55,12 +75,10 @@ app.post("/login", (req, res) => {
     login(req, res, Collections.Users);
 });
 
-app.use("/logout", ifLoggedInMiddleware);
 app.post("/logout", logout);
 
 app.post("/verify", (req, res) => verify(req, res, Collections.Users));
 
-app.use("/additem", ifLoggedInMiddleware);
 app.post("/additem", (req, res) => {
     addItem(req, res, Collections.Items);
 });
@@ -75,9 +93,21 @@ app.get("/item/:id", async (req, res) => {
             throw new Error("Item not found!");
         }
 
+        const item: ItemPayload = {
+            id: result.id,
+            username: result.ownerName,
+            content: result.content,
+            childType: result.childType,
+            timestamp: result.timestamp,
+            retweeted: result.retweeted,
+            property: {
+                likes: result.likes
+            }
+        };
+
         res.send({
             status: "OK",
-            item: result
+            item
         } as ResponseSchema);
     } catch (e) {
         // If given itemid is invalid, then ObjectID constructor will throw an error
@@ -85,58 +115,42 @@ app.get("/item/:id", async (req, res) => {
     }
 });
 
-app.use("/item/:id/like", ifLoggedInMiddleware);
 app.get("/item/:id/like", (req, res) => like(req, res, Collections.Items));
 
-app.post("/search", async (req, res) => {
-    try {
-        const { body: {
-            limit: reqLimit, timestamp: reqTimestamp
-        } } = req;
+app.delete(
+    "/item/:id",
+    loggedInOnly(),
+    (req, res) => deleteItem(req, res, Collections.Items)
+);
 
-        if (typeof reqLimit !== "number" && reqLimit !== undefined) {
-            throw new Error(`Limit value super incorrect!`);
-        }
+app.post("/search", async (req, res) => search(
+    req, res, Collections.Items, Collections.Follows
+));
 
-        if (reqLimit < 0) {
-            throw new Error(`Limit value ${reqLimit} is malformed!`);
-        }
+app.post("/follow", (req, res) => follow(
+    req,
+    res,
+    Collections.Follows,
+    Collections.Users
+));
 
-        let limit;
+app.use("/user", (req, res, next) => createUserRouter(
+    req,
+    res,
+    next,
+    Collections
+));
 
-        if (!reqLimit) {
-            limit = 25;
-        } else if (reqLimit > 100) {
-            limit = 100;
-        } else {
-            limit = reqLimit;
-        }
+app.get("/elastic/clear", async (_, res) => {
+    await elastic().deleteAll();
 
-        if (
-            (typeof reqTimestamp !== "number" && reqTimestamp !== undefined)
-            || reqTimestamp < 0
-        ) {
-            throw new Error(`Timestamp value "${reqTimestamp}" is malformed!`);
-        }
+    res.send({
+        status: "OK"
+    });
+});
 
-        const timestamp = reqTimestamp || Math.round(Date.now() / 1000);
-
-        const items: any[] = [];
-
-        await Collections.Items.find({
-            timestamp: { $lte: timestamp }
-        }, { limit }).forEach((item) => {
-            item.id = item._id.toHexString();
-            items.push(item);
-        });
-
-        res.send({
-            status: "OK",
-            items
-        });
-    } catch (e) {
-        respond(res, e.message);
-    }
+app.get("*", (_, res) => {
+    res.sendFile(path.join(__dirname, "../../chirp-ui-static/index.html"));
 });
 
 const DB_CREDENTIALS = DB_USER && DB_PASSWORD

@@ -5,20 +5,35 @@ export enum ContentType {
     REPLY = "REPLY"
 }
 
-export interface ItemModel extends MongoDocument {
+export interface ItemPayload {
     id: string;
     content: string;
     childType?: ContentType | null;
-    parentID?: string;
+    parent?: string;
     media?: string[];
     timestamp: number;
-    ownerID: string;
     username: string;
     retweeted: number;
     property: {
         likes: number;
-        likedBy: string[];
     };
+}
+
+export interface ItemModel extends MongoDocument, ItemCoreModel {
+    media?: string[];
+    retweeted: number;
+    likes: number;
+    likedBy: string[];
+}
+
+export interface ItemCoreModel {
+    id: string;
+    content: string;
+    childType?: ContentType | null;
+    parentID?: string;
+    timestamp: number;
+    ownerID: string;
+    ownerName: string;
 }
 
 export interface LikesModel extends MongoDocument {

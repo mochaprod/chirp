@@ -1,12 +1,15 @@
 import { RequestHandlerDB } from "./models/express";
 import { UserModel } from "./models/user";
 
-import { setUserCookie, validateUserCookie } from "./cookies/auth";
+import { setUserCookie, validateUserCookie, signUserToken } from "./cookies/auth";
 
 import { respond } from "./utils/response";
 
 const login: RequestHandlerDB<UserModel> = async (req, res, Users) => {
     const {
+        query: {
+            token
+        },
         body: {
             username,
             password
@@ -27,10 +30,19 @@ const login: RequestHandlerDB<UserModel> = async (req, res, Users) => {
                 throw new Error("You're not verified yet!");
             }
 
-            // Send email
-            setUserCookie(res, user._id.toHexString(), username);
+            if (token) {
+                respond(
+                    res,
+                    undefined,
+                    {
+                        token: signUserToken(user._id.toHexString(), username)
+                    }
+                );
+            } else {
+                setUserCookie(res, user._id.toHexString(), username);
 
-            respond(res);
+                respond(res);
+            }
         } else {
             throw new Error("Unable to verify provided credentials!");
         }

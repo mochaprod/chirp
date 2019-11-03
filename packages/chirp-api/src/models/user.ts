@@ -10,6 +10,12 @@ export interface UserModel {
     verificationToken: string;
 }
 
+export interface FollowsModel {
+    _id: ObjectId;
+    user: string;
+    follows: string;
+}
+
 export type CookieValidator = (
     req: Request, response?: Response
 ) => CookieValidation;
