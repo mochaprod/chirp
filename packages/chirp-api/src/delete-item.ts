@@ -17,14 +17,14 @@ const deleteItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             throw new Error("[app.delete] Internal error!");
         }
 
-        await elastic().delete(id);
-
         const { deletedCount } = await Items.deleteOne({
             id,
             ownerName: user.name
         });
 
         if (deletedCount && deletedCount === 1) {
+            await elastic().delete(id);
+
             respond(res);
         } else {
             throw new Error(`Item ${id} belonging to ${user.name} not found.`);
@@ -34,6 +34,8 @@ const deleteItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             res,
             e.message
         );
+
+        throw e;
     }
 };
 

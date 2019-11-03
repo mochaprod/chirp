@@ -141,6 +141,14 @@ app.use("/user", (req, res, next) => createUserRouter(
     Collections
 ));
 
+app.get("/elastic/clear", async (_, res) => {
+    await elastic().deleteAll();
+
+    res.send({
+        status: "OK"
+    });
+});
+
 app.get("*", (_, res) => {
     res.sendFile(path.join(__dirname, "../../chirp-ui-static/index.html"));
 });
