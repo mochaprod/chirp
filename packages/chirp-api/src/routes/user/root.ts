@@ -32,13 +32,15 @@ const root: RequestHandlerDB<FollowsModel, UserModel> = async (
                 res,
                 undefined,
                 {
-                    email: user.email,
-                    following,
-                    followers
+                    user: {
+                        email: user.email,
+                        following,
+                        followers
+                    }
                 }
             );
         } else {
-            throw new Error(`User "${userParam}" not found!`);
+            throw new Error(`User ${userParam} not found!`);
         }
     } catch (e) {
         respond(res, e.message);
