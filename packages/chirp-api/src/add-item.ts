@@ -1,9 +1,10 @@
 import shortid from "shortid";
 
 import { RequestHandlerDB, ResponseSchema } from "./models/express";
-import { ItemModel } from "./models/item";
+import { ItemModel, ItemCoreModel } from "./models/item";
 
 import { respond } from "./utils/response";
+import elastic from "./utils/elasticsearch";
 
 const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
     try {
@@ -23,16 +24,26 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
         }
 
         const itemID = shortid.generate();
+        const timestamp = Math.round(Date.now() / 1000);
 
-        await Items.insertOne({
+        const item: ItemCoreModel = {
             id: itemID,
+            childType: childType || null,
             ownerID: user.id,
             ownerName: user.name,
-            retweeted: 0,
+            timestamp,
             content,
-            childType,
-            parentID: parent,
-            timestamp: Math.round(Date.now() / 1000),
+            parentID: parent || null
+        };
+
+        await elastic().insert<ItemCoreModel>(
+            itemID,
+            item
+        );
+
+        await Items.insertOne({
+            ...item,
+            retweeted: 0,
             media,
             likes: 0,
             likedBy: []

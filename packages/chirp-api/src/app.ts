@@ -20,13 +20,15 @@ import deleteItem from "./delete-item";
 import login from "./login";
 import logout from "./logout";
 import follow from "./routes/user/follow";
+import search from "./search/search";
 
 import connect, { Collections } from "./db/database";
 import { loggedInOnly } from "./cookies/auth";
 import { respond } from "./utils/response";
-import search from "./search/search";
+import elastic from "./utils/elasticsearch";
 
 dotenv.config();
+elastic();
 
 const {
     PORT,

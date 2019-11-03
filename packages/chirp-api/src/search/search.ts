@@ -1,10 +1,10 @@
-import { FilterQuery } from "mongodb";
-
 import { RequestHandlerDB } from "../models/express";
 import { ItemPayload, ItemModel } from "../models/item";
+import { FollowsModel } from "../models/user";
 
 import { respond } from "../utils/response";
-import { FollowsModel } from "../models/user";
+import elastic from "../utils/elasticsearch";
+import { validateUserCookie } from "../cookies/auth";
 
 const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items, Follows) => {
     try {
@@ -45,21 +45,71 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             throw new Error(`Timestamp value "${reqTimestamp}" is malformed!`);
         }
 
-        const timestamp = reqTimestamp || Math.round(Date.now() / 1000);
-        const query: FilterQuery<ItemModel> = {
-            timestamp: { $lte: timestamp }
-        };
+        const timestamp = Number(reqTimestamp) || Math.round(Date.now() / 1000);
+        const must: any[] = [];
+        const filter: any[] = [];
+        const mustNot: any[] = [];
 
-        if (reqUsername) {
-            query.ownerName = reqUsername;
+        if (reqQuery) {
+            must.push({
+                match: {
+                    content: reqQuery
+                }
+            });
         }
 
-        const result = await Items
-            .find(query)
-            .sort({
-                timestamp: -1
+        if (reqUsername) {
+            must.push({
+                match: {
+                    ownerName: reqUsername
+                }
+            });
+        }
+
+        if (reqFollowing !== false) {
+            const { valid, decoded } = validateUserCookie(req);
+
+            if (!valid || !decoded) {
+                throw new Error("You aren't logged in for this query!");
+            }
+
+            const usersFollowing = await Follows
+                .find({ user: decoded.username })
+                .map(({ follows }) => follows)
+                .toArray();
+
+            filter.push({
+                terms: {
+                    ownerName: usersFollowing
+                }
+            });
+        }
+
+        filter.push({
+            range: {
+                timestamp: {
+                    lte: timestamp
+                }
+            }
+        });
+
+        const { body } = await elastic().search({
+            size: limit,
+            must,
+            filter,
+            mustNot
+        });
+
+        const hits = body.hits.hits as any[];
+        const ids = hits.map(({ _id: id }) => id);
+
+        const items = await Items
+            .find({
+                id: {
+                    $in: ids
+                }
             })
-            .map<ItemPayload>((payload) => {
+            .map((payload) => {
                 const item: ItemPayload = {
                     id: payload.id,
                     username: payload.ownerName,
@@ -75,37 +125,6 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
                 return item;
             })
             .toArray();
-
-        // Application-level queries
-
-        let items = result;
-
-        if (reqFollowing) {
-            const { user } = req;
-
-            if (!user) {
-                throw new Error("You aren't logged in for this query!");
-            }
-
-            const usersFollowing = await Follows
-                .find({ user: user.name })
-                .map(({ follows }) => follows)
-                .toArray();
-
-            items = items
-                .filter(({ username }) => usersFollowing.includes(username));
-        }
-
-        if (reqQuery) {
-            const q = `${reqQuery}`;
-
-            items = result
-                .filter(({ content }) => content
-                    .toLowerCase()
-                    .startsWith(q.toLowerCase()));
-        }
-
-        items = items.slice(0, limit);
 
         res.send({
             status: "OK",

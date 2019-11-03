@@ -2,6 +2,7 @@ import { RequestHandlerDB } from "./models/express";
 import { ItemModel } from "./models/item";
 
 import { respond } from "./utils/response";
+import elastic from "./utils/elasticsearch";
 
 const deleteItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
     const {
@@ -16,6 +17,8 @@ const deleteItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             throw new Error("[app.delete] Internal error!");
         }
 
+        await elastic().delete(id);
+
         const { deletedCount } = await Items.deleteOne({
             id,
             ownerName: user.name
@@ -24,7 +27,7 @@ const deleteItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
         if (deletedCount && deletedCount === 1) {
             respond(res);
         } else {
-            throw new Error(`Item ${id} not found.`);
+            throw new Error(`Item ${id} belonging to ${user.name} not found.`);
         }
     } catch (e) {
         respond(
