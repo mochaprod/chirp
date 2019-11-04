@@ -1,4 +1,4 @@
-import { Item } from "./data";
+import { Item, UserDetails } from "./data";
 
 export interface APIResponse {
     status: "OK" | "error";
@@ -7,6 +7,18 @@ export interface APIResponse {
 
 export interface UserAPIResponse extends APIResponse {
     name: string;
+}
+
+export interface UserDetailsAPIResponse extends APIResponse {
+    user: UserDetails;
+}
+
+export interface UserPostsAPIResponse extends APIResponse {
+    items: string[];
+}
+
+export interface UserConnectionsAPIResponse extends APIResponse {
+    users: string[];
 }
 
 export interface LoginAPIResponse extends APIResponse {

@@ -26,6 +26,7 @@ const UserProvider: React.FC = ({
 }) => {
     const [done, setDone] = useState<boolean>(false);
     const [authed, setAuthed] = useState<boolean>(false);
+    const [name, setName] = useState<string | null>(null);
 
     const { token, setToken } = useContext(StorageContext);
 
@@ -37,7 +38,8 @@ const UserProvider: React.FC = ({
     const providerValue: UserContextShape = {
         done,
         authenticated: authed,
-        invalidate
+        invalidate,
+        name: name || undefined
     };
 
     useEffect(() => {
@@ -50,7 +52,8 @@ const UserProvider: React.FC = ({
                 if (token) {
                     const {
                         data: {
-                            status
+                            status,
+                            name: responseName
                         }
                     } = await api<UserAPIResponse>(
                         "/user",
@@ -63,6 +66,7 @@ const UserProvider: React.FC = ({
 
                     if (status === "OK") {
                         setAuthed(true);
+                        setName(responseName);
                     } else {
                         setAuthed(false);
                     }
