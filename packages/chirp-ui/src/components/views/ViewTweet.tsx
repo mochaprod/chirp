@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Redirect } from "react-router-dom";
+import { useParams, Redirect, Link } from "react-router-dom";
 
 import { ItemAPIResponse } from "../../models/api";
 import { Item } from "../../models/data";
@@ -129,9 +129,13 @@ const ViewTweet: React.FC = () => {
         return (
             <div>
                 <div>
-                    <h3>
-                        { username }
-                    </h3>
+                    <Link
+                        to={ `/user/${username}` }
+                    >
+                        <h3>
+                            { username }
+                        </h3>
+                    </Link>
                     { renderDeleteButton() }
                 </div>
                 <div>
