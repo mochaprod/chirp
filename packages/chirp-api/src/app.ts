@@ -85,16 +85,22 @@ app.post("/additem", (req, res) => {
 
 app.get("/item/:id", async (req, res) => {
     try {
+        const { params: { id } } = req;
+
+        if (!id) {
+            throw new Error("No item provided.");
+        }
+
         const result = await Collections.Items.findOne({
-            id: req.params.id
+            _id: id,
         });
 
         if (!result) {
-            throw new Error("Item not found!");
+            throw new Error(`Item ${id} not found!`);
         }
 
         const item: ItemPayload = {
-            id: result.id,
+            id: result._id,
             username: result.ownerName,
             content: result.content,
             childType: result.childType,

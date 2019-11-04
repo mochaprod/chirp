@@ -27,7 +27,6 @@ export interface ItemModel extends MongoDocument, ItemCoreModel {
 }
 
 export interface ItemCoreModel {
-    id: string;
     content: string;
     childType?: ContentType | null;
     parentID?: string;

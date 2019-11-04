@@ -27,7 +27,6 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
         const timestamp = Math.round(Date.now() / 1000);
 
         const item: ItemCoreModel = {
-            id: itemID,
             childType: childType || null,
             ownerID: user.id,
             ownerName: user.name,
@@ -43,6 +42,7 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
 
         await Items.insertOne({
             ...item,
+            _id: itemID,
             retweeted: 0,
             media,
             likes: 0,

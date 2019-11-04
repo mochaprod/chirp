@@ -22,7 +22,7 @@ const posts: RequestHandlerDB<ItemModel> = async (
         const items = await Items
             .find({ ownerName: user })
             .limit(limit)
-            .map(({ id }) => id)
+            .map(({ _id: id }) => id)
             .toArray();
 
         respond(
