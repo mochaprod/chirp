@@ -75,7 +75,7 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
 
             const usersFollowing = await Follows
                 .find({ user: decoded.username })
-                .map(({ follows }) => follows)
+                .map(({ follows }) => follows.toLowerCase())
                 .toArray();
 
             filter.push({
