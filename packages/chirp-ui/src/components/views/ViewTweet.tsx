@@ -130,7 +130,7 @@ const ViewTweet: React.FC = () => {
             <div>
                 <div>
                     <Link
-                        to={ `/user/${username}` }
+                        to={ `/profile/${username}` }
                     >
                         <h3>
                             { username }

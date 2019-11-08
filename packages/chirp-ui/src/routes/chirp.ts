@@ -43,7 +43,7 @@ const chirpRoutes: Route[] = [
         component: React.lazy(() => import("../components/views/ViewTweet"))
     },
     {
-        to: "/user/:user",
+        to: "/profile/:user",
         exact: true,
         component: User
     },

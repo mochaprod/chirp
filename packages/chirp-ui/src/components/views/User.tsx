@@ -55,7 +55,7 @@ const User: React.FC = () => {
             key={ name }
         >
             <Link
-                to={ `/user/${name}` }
+                to={ `/profile/${name}` }
             >
                 { name }
             </Link>
