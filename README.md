@@ -6,6 +6,8 @@ A highly scalable, highly performant, highly blazing-fast Twitter clone.
 
 Contains all the setup/deployment files for all our cloud instances.
 
+For deployment related notes, see the [Ansible](./ansible) folder.
+
 ## Packages
 
 * `chirp-api` - API service
