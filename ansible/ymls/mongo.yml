@@ -2,3 +2,4 @@
 - import_playbook: mongo/install.yml
 - import_playbook: mongo/config.yml
 - import_playbook: mongo/config-primary.yml
+- import_playbook: mongo/query.yml

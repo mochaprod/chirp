@@ -1,5 +1,5 @@
 - name: Install Mongo
-  hosts: mongo_shard, mongo_config_primary, mongo_config_secondary
+  hosts: webserver, mongo_shard, mongo_config_primary, mongo_config_secondary
   remote_user: ubuntu
   vars:
     path: ~/chirp/packages/chirp-mongodb
