@@ -21,8 +21,6 @@ export interface ItemPayload {
 
 export interface ItemModel extends MongoDocument, ItemCoreModel {
     media?: string[];
-    retweeted: number;
-    likes: number;
     likedBy: string[];
 }
 
@@ -33,6 +31,8 @@ export interface ItemCoreModel {
     timestamp: number;
     ownerID: string;
     ownerName: string;
+    retweeted: number;
+    likes: number;
 }
 
 export interface LikesModel extends MongoDocument {

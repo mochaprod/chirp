@@ -72,6 +72,15 @@ class ElasticChirpClient {
             });
     }
 
+    public async update<T>(id: string, body: T) {
+        return this.client
+            .update({
+                index: this.index,
+                id,
+                body
+            });
+    }
+
     public async delete(id: string) {
         return this.client
             .delete({

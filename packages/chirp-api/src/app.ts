@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import multer from "multer";
 import morgan from "morgan";
 import mongo from "mongodb";
 
@@ -20,6 +21,8 @@ import deleteItem from "./delete-item";
 import login from "./login";
 import logout from "./logout";
 import follow from "./routes/user/follow";
+import addMedia from "./routes/media/add-media";
+import media from "./routes/media/media";
 import search from "./search/search";
 
 import connect, { Collections } from "./db/database";
@@ -146,6 +149,17 @@ app.use("/user", (req, res, next) => createUserRouter(
     next,
     Collections
 ));
+
+app.post(
+    "/addmedia",
+    loggedInOnly(),
+    (req, res) => addMedia(req, res, Collections.Items)
+);
+
+app.get(
+    "/media/:id",
+    (req, res) => media(req, res, Collections.Items)
+);
 
 app.get("/elastic/clear", async (_, res) => {
     await elastic().deleteAll();

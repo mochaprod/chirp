@@ -32,7 +32,9 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             ownerName: user.name,
             timestamp,
             content,
-            parentID: parent || null
+            parentID: parent || null,
+            retweeted: 0,
+            likes: 0
         };
 
         await elastic().insert<ItemCoreModel>(
@@ -43,9 +45,7 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
         await Items.insertOne({
             ...item,
             _id: itemID,
-            retweeted: 0,
             media,
-            likes: 0,
             likedBy: []
         });
 
