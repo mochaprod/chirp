@@ -1,0 +1,17 @@
+- name: Declare Mongo shards 
+  hosts: mongo_shard
+  remote_user: ubuntu
+  vars:
+    path: ~/chirp/packages/chirp-mongodb/shard
+  tasks:
+  - name: Copy mongod.conf file
+    become: yes
+    copy:
+      src: "{{ path }}/mongod.conf"
+      dest: /etc/mongod.conf
+      force: yes
+  - name: Restart Mongo
+    become: yes
+    service:
+      name: mongod
+      state: restarted

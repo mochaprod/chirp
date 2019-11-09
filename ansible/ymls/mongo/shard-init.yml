@@ -1,0 +1,16 @@
+- name: Initialize Mongo shards 
+  # Could be done on any machine with mongo installed
+  hosts: mongo_config_primary
+  remote_user: ubuntu
+  vars:
+    path: ~/Desktop/Fall/CSE356/chirp/packages/chirp-mongodb/shard
+  tasks:
+  - name: Copy over commands needed to start shard
+    become: yes
+    copy:
+      src: "{{ path }}/init.js"
+      dest: /home/ubuntu/init.js
+      force: yes
+  - name: Add shards and start sharding
+    become: yes
+    shell: mongo query1:27017 < /home/ubuntu/init.js

@@ -3,3 +3,5 @@
 - import_playbook: mongo/config.yml
 - import_playbook: mongo/config-primary.yml
 - import_playbook: mongo/query.yml
+- import_playbook: mongo/shard.yml
+- import_playbook: mongo/shard-init.yml
