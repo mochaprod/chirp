@@ -28,7 +28,7 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             throw new Error(`Limit value ${reqLimit} is malformed!`);
         }
 
-        let limit;
+        let limit: number;
 
         if (!reqLimit) {
             limit = 25;
@@ -75,7 +75,7 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
 
             const usersFollowing = await Follows
                 .find({ user: decoded.username })
-                .map(({ follows }) => follows)
+                .map(({ follows }) => follows.toLowerCase())
                 .toArray();
 
             filter.push({
@@ -103,15 +103,17 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
         const hits = body.hits.hits as any[];
         const ids = hits.map(({ _id: id }) => id);
 
+        // MongoClient.find using an array of ids does not guarantee order!
+        // Change query if order is a requirement.
         const items = await Items
             .find({
-                id: {
+                _id: {
                     $in: ids
                 }
             })
             .map((payload) => {
                 const item: ItemPayload = {
-                    id: payload.id,
+                    id: payload._id,
                     username: payload.ownerName,
                     content: payload.content,
                     childType: payload.childType,

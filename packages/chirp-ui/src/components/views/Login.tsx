@@ -80,11 +80,13 @@ const Login: React.FC = () => {
         >
             <input
                 type="text"
+                placeholder="Username"
                 value={ name }
                 onChange={ createOnChange(setName, setNameError) }
             />
             <input
                 type="password"
+                placeholder="Password"
                 value={ password }
                 onChange={ createOnChange(setPassword, setPasswordError) }
             />

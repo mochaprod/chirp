@@ -18,7 +18,7 @@ const deleteItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
         }
 
         const { deletedCount } = await Items.deleteOne({
-            id,
+            _id: id,
             ownerName: user.name
         });
 
