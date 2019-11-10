@@ -1,8 +1,8 @@
-- name: Declare Mongo config servers 
+- name: Declare Mongo config servers
   hosts: mongo_config_primary, mongo_config_secondary
   remote_user: ubuntu
   vars:
-    path: ~/chirp/packages/packages/chirp-mongodb/config
+    path: ~/chirp/packages/chirp-mongodb/config
   tasks:
   - name: Copy mongod.conf file
     become: yes
