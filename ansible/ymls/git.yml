@@ -1,0 +1,12 @@
+---
+- name: Clone repository
+  hosts: all
+  remote_user: ubuntu
+  tasks:
+    - name: git clone repository
+      git:
+        repo: 'git@github.com:TaskSquirrel/chirp.git'
+        dest: '~/chirp'
+        accept_hostkey: yes
+        update: yes
+        force: yes

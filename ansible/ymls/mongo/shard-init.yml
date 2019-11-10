@@ -1,9 +1,9 @@
-- name: Initialize Mongo shards 
+- name: Initialize Mongo shards
   # Could be done on any machine with mongo installed
   hosts: mongo_config_primary
   remote_user: ubuntu
   vars:
-    path: ~/Desktop/Fall/CSE356/chirp/packages/chirp-mongodb/shard
+    path: ~/chirp/packages/chirp-mongodb/shard
   tasks:
   - name: Copy over commands needed to start shard
     become: yes

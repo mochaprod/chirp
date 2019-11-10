@@ -9,6 +9,10 @@ rs.initiate({
     {
       _id: 1,
       host: "config2:27019"
+    },
+    {
+      _id: 2,
+      host: "config3:27019"
     }
   ]
 });
