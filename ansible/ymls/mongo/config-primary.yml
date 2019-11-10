@@ -1,0 +1,15 @@
+- name: Initialize Mongo config servers 
+  hosts: mongo_config_primary
+  remote_user: ubuntu
+  vars:
+    path: ~/chirp/packages/chirp-mongodb/config
+  tasks:
+  - name: Copy over commands needed to start server
+    become: yes
+    copy:
+      src: "{{ path }}/primary.js"
+      dest: /home/ubuntu/primary.js
+      force: yes
+  - name: Start the config server
+    become: yes
+    command: mongo --port 27019 < /home/ubuntu/primary.js

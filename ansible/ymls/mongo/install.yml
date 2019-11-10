@@ -1,0 +1,31 @@
+- name: Install Mongo
+  hosts: webserver, mongo_shard, mongo_config_primary, mongo_config_secondary
+  remote_user: ubuntu
+  vars:
+    path: ~/chirp/packages/chirp-mongodb
+  tasks:
+  - name: Add MongoDB public key
+    become: yes
+    apt_key:
+      url: https://www.mongodb.org/static/pgp/server-4.2.asc
+      state: present
+  - name: Create list file for MongoDB
+    become: yes
+    lineinfile:
+      line: "deb https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse"
+      dest: "/etc/apt/sources.list.d/mongodb.list"
+      state: present
+      create: yes
+  - name: Actually install MongoDB
+    become: yes
+    apt:
+      name: mongodb-org
+      state: latest
+      force_apt_get: yes
+      update_cache: yes
+  - name: Copy hosts file
+    become: yes
+    copy:
+      src: "{{ path }}/hosts"
+      dest: /etc/hosts
+      force: yes

@@ -13,12 +13,6 @@
       file:
         path: '/etc/nginx/sites-enabled/default'
         state: absent
-    - name: git clone repo
-      git:
-        repo: 'git@github.com:TaskSquirrel/chirp.git'
-        dest: ~/chirp
-        accept_hostkey: yes
-        update: yes
     - name: Copy load balancer config
       become: yes
       file:

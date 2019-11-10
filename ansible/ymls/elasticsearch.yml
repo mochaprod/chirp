@@ -1,0 +1,42 @@
+- name: Install Elasticsearch
+  hosts: elasticsearch
+  remote_user: ubuntu
+  vars:
+    path: ~/chirp/packages/chirp-elasticsearch
+  tasks:
+  - name: Add Elasticsearch PGP key
+    shell: "wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -"
+    args:
+      warn: false
+  - name: Download necessary package for accessing repos over HTTPS
+    become: yes
+    apt:
+      name: apt-transport-https
+      state: latest
+      force_apt_get: yes
+      update_cache: yes
+  - name: Create list file (repository definition) for Elasticsearch
+    become: yes
+    lineinfile:
+      line: "deb https://artifacts.elastic.co/packages/7.x/apt stable main"
+      dest: "/etc/apt/sources.list.d/elastic-7.x.list"
+      state: present
+      create: yes
+  - name: Actually install Elasticsearch
+    become: yes
+    apt:
+      name: elasticsearch
+      state: latest
+      force_apt_get: yes
+      update_cache: yes
+  - name: Copy Elasticsearch yml
+    become: yes
+    copy:
+      src: "{{ path }}/elasticsearch.yml"
+      dest: /etc/elasticsearch/elasticsearch.yml
+      force: yes
+  - name: Start Elasticsearch
+    become: yes
+    service:
+      name: elasticsearch
+      state: restarted
