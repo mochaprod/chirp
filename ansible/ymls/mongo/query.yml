@@ -1,0 +1,33 @@
+- name: Set up Query Routers on app servers
+  hosts: webserver
+  remote_user: ubuntu
+  vars:
+    path: ~/chirp/packages/chirp-mongodb/query
+  tasks:
+  - name: Copy configuration file (mongos.conf)
+    become: yes
+    copy:
+      src: "{{ path }}/mongos.conf"
+      dest: /etc/mongos.conf
+      force: yes
+  - name: Copy systemd unit file (mongos.service)
+    become: yes
+    copy:
+      src: "{{ path }}/mongos.service"
+      dest: /lib/systemd/system/mongos.service
+      force: yes
+  - name: Start mongos instead (Mongo server)
+    become: yes
+    service:
+      name: mongos
+      state: started
+  - name: Stop mongod (Mongo daemon)
+    become: yes
+    service:
+      name: mongod
+      state: stopped
+  - name: Start mongos instead (Mongo server)
+    become: yes
+    service:
+      name: mongos
+      state: started

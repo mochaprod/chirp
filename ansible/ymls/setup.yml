@@ -1,4 +1,5 @@
 ---
+- import_playbook: git.yml
 - import_playbook: api-nginx.yml
-- import_playbook: mongo.yml
 - import_playbook: webserver.yml
+- import_playbook: mongo.yml

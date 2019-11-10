@@ -2,7 +2,7 @@
   hosts: cassandra
   remote_user: ubuntu
   tasks:
-  - name: Add Cassandra public key
+  - name: Add Cassandra repository key
     shell: "curl https://www.apache.org/dist/cassandra/KEYS | sudo apt-key add -"
     args:
       warn: false
