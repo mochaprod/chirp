@@ -114,6 +114,7 @@ app.get("/item/:id", async (req, res) => {
             timestamp: result.timestamp,
             retweeted: result.retweeted,
             parent: result.parentID,
+            media: result.media,
             property: {
                 likes: result.likes
             }
