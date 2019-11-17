@@ -28,14 +28,24 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             || childType === ContentType.REPLY
         ) {
             if (parent) {
-                await Items.update(
-                    { _id: parent },
-                    { $inc: {
-                        retweeted: 1
-                    } }
-                );
+                if (childType === ContentType.RETWEET) {
+                    await elastic()
+                        .update(
+                            parent,
+                            {
+                                script: "ctx._source.retweeted += 1"
+                            }
+                        );
+
+                    await Items.updateOne(
+                        { _id: parent },
+                        { $inc: {
+                            retweeted: 1
+                        } }
+                    );
+                }
             } else {
-                throw new Error("No parent for reply/retweet");
+                throw new Error("No parent for reply/retweet!");
             }
         }
 

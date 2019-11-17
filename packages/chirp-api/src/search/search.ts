@@ -17,7 +17,11 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             timestamp: reqTimestamp,
             q: reqQuery,
             username: reqUsername,
-            following: reqFollowing
+            following: reqFollowing,
+            rank: reqRank,
+            parent: reqParent,
+            replies: reqReplies,
+            hasMedia: reqHasMedia
         } } = req;
 
         if (typeof reqLimit !== "number" && reqLimit !== undefined) {
@@ -49,6 +53,7 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
         const must: any[] = [];
         const filter: any[] = [];
         const mustNot: any[] = [];
+        const sort: any[] = [];
 
         if (reqQuery) {
             must.push({
@@ -85,19 +90,42 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             });
         }
 
-        filter.push({
-            range: {
-                timestamp: {
-                    lte: timestamp
+        if (reqRank === "time") {
+            filter.push({
+                range: {
+                    timestamp: {
+                        lte: timestamp
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            sort.push({
+                likes: { order: "desc" }
+            });
+        }
+
+        if (reqParent && reqReplies !== false) {
+            must.push({
+                match: {
+                    parentID: reqParent
+                }
+            });
+        }
+
+        if (reqReplies === false) {
+            mustNot.push({
+                match: {
+                    childType: "reply"
+                }
+            });
+        }
 
         const { body } = await elastic().search({
             size: limit,
             must,
             filter,
-            mustNot
+            mustNot,
+            sort
         });
 
         const hits = body.hits.hits as any[];

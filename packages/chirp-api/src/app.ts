@@ -113,6 +113,7 @@ app.get("/item/:id", async (req, res) => {
             childType: result.childType,
             timestamp: result.timestamp,
             retweeted: result.retweeted,
+            parent: result.parentID,
             property: {
                 likes: result.likes
             }
@@ -128,7 +129,9 @@ app.get("/item/:id", async (req, res) => {
     }
 });
 
-app.get("/item/:id/like", (req, res) => like(req, res, Collections.Items));
+app.post("/item/:id/like", (req, res) => like(
+    req, res, Collections.Items, Collections.Likes
+));
 
 app.delete(
     "/item/:id",

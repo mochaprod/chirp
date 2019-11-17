@@ -2,6 +2,7 @@ import { RequestHandlerDB } from "./models/express";
 import { ItemModel, LikesModel } from "./models/item";
 
 import { respond } from "./utils/response";
+import elastic from "./utils/elasticsearch";
 
 const like: RequestHandlerDB<ItemModel, LikesModel> = async (
     req, res, Items, Likes
@@ -22,8 +23,7 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
         }
 
         const result = await Items.findOne({
-            itemID: id,
-            ownerID: user.id,
+            _id: id
         });
 
         if (!result) {
@@ -39,16 +39,24 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
             if (liked) {
                 throw new Error("Already liked!");
             } else {
-                await Likes.insert({
+                await Likes.insertOne({
                     itemID: id,
                     owner: user.name,
                     ownerID: user.id
                 });
 
-                await Items.update(
+                await Items.updateOne(
                     { _id: id },
                     { $inc: { likes: 1 } }
                 );
+
+                await elastic()
+                    .update(
+                        id,
+                        {
+                            script: "ctx._source.likes += 1"
+                        }
+                    );
             }
         } else {
             if (!liked) {
@@ -59,10 +67,18 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
                     ownerID: user.id
                 });
 
-                await Items.update(
+                await Items.updateOne(
                     { _id: id },
                     { $inc: { likes: -1 } }
                 );
+
+                await elastic()
+                    .update(
+                        id,
+                        {
+                            script: "ctx._source.likes += 1"
+                        }
+                    );
             }
         }
 

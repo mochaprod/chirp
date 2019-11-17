@@ -34,8 +34,6 @@ const deleteItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             res,
             e.message
         );
-
-        throw e;
     }
 };
 
