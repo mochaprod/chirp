@@ -29,6 +29,7 @@ import connect, { Collections } from "./db/database";
 import { loggedInOnly } from "./cookies/auth";
 import { respond } from "./utils/response";
 import elastic from "./utils/elasticsearch";
+import CassandraClient from "./utils/cassandra";
 
 dotenv.config();
 elastic();
@@ -59,6 +60,9 @@ app.use(express.static(path.join(__dirname, "../../chirp-ui-static/")));
 
 let db: mongo.Db;
 let Collections: Collections;
+let cassandra = new CassandraClient();
+
+let upload = multer();
 
 app.use(
     [
@@ -152,13 +156,14 @@ app.use("/user", (req, res, next) => createUserRouter(
 
 app.post(
     "/addmedia",
+    upload.single('content'),
     loggedInOnly(),
-    (req, res) => addMedia(req, res, Collections.Items)
+    (req, res) => addMedia(req, res, cassandra)
 );
 
 app.get(
     "/media/:id",
-    (req, res) => media(req, res, Collections.Items)
+    (req, res) => media(req, res, cassandra)
 );
 
 app.get("/elastic/clear", async (_, res) => {

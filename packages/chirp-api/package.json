@@ -11,6 +11,7 @@
     "@elastic/elasticsearch": "^7.4.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
+    "cassandra-driver": "^4.3.1",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
