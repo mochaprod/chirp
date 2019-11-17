@@ -1,8 +1,8 @@
 import { MongoDocument } from "./mongo";
 
 export enum ContentType {
-    RETWEET = "RETWEET",
-    REPLY = "REPLY"
+    RETWEET = "retweet",
+    REPLY = "reply"
 }
 
 export interface ItemPayload {

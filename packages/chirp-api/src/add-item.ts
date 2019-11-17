@@ -1,7 +1,7 @@
 import shortid from "shortid";
 
 import { RequestHandlerDB, ResponseSchema } from "./models/express";
-import { ItemModel, ItemCoreModel } from "./models/item";
+import { ItemModel, ItemCoreModel, ContentType } from "./models/item";
 
 import { respond } from "./utils/response";
 import elastic from "./utils/elasticsearch";
@@ -23,6 +23,22 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             throw new Error("No content was provided!");
         }
 
+        if (
+            childType === ContentType.RETWEET
+            || childType === ContentType.REPLY
+        ) {
+            if (parent) {
+                await Items.update(
+                    { _id: parent },
+                    { $inc: {
+                        retweeted: 1
+                    } }
+                );
+            } else {
+                throw new Error("No parent for reply/retweet");
+            }
+        }
+
         const itemID = shortid.generate();
         const timestamp = Math.round(Date.now() / 1000);
 
@@ -32,7 +48,7 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             ownerName: user.name,
             timestamp,
             content,
-            parentID: parent || null,
+            parentID: parent,
             retweeted: 0,
             likes: 0
         };

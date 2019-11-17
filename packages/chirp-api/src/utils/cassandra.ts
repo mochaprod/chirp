@@ -8,36 +8,45 @@ class CassandraClient {
     private Uuid: typeof cassandra.types.Uuid;
 
     constructor() {
-        const URLS = ['209.50.57.107', '209.50.53.26'];
-        const KEYSPACE = 'chirp';
-        const DATACENTER = 'datacenter1';
+        const { CASSANDRA } = process.env;
+
+        if (!CASSANDRA) {
+            throw new Error("Cassandra failed to connect");
+        }
+
+        const URLS = CASSANDRA
+            .split(",")
+            .map((ip) => ip.trim());
+        const KEYSPACE = "chirp";
+        const DATACENTER = "datacenter1";
 
         this.client = new cassandra.Client({
-          contactPoints: URLS,
-          localDataCenter: DATACENTER,
-          keyspace: KEYSPACE
+            contactPoints: URLS,
+            localDataCenter: DATACENTER,
+            keyspace: KEYSPACE
         });
 
         this.client.connect((err) => {
-          console.log('Connected to Cassandra!');
+            console.log("Connected to Cassandra!");
         });
 
         this.Uuid = cassandra.types.Uuid;
     }
 
     public async insert(image: Buffer) {
-      const id = this.Uuid.random();
-      const params = [id, image];
-      await this.client.execute(INSERT_QUERY, params, { prepare: true });
-      return id;
+        const id = this.Uuid.random();
+        const params = [id, image];
+        await this.client.execute(INSERT_QUERY, params, { prepare: true });
+
+        return id;
     }
 
-    public async retrieve(id: String) {
-      const params = [id];
-      const results: cassandra.types.ResultSet = await this.client.execute(SELECT_QUERY, params, { prepare: true });
-      return results.first().get("image");
+    public async retrieve(id: string) {
+        const params = [id];
+        const results: cassandra.types.ResultSet = await this.client.execute(SELECT_QUERY, params, { prepare: true });
+
+        return results.first().get("image");
     }
 }
-
 
 export default CassandraClient;
