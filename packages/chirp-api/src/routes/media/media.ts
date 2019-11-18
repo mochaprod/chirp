@@ -19,7 +19,7 @@ const media = async (req: Request, res: Response, client: CassandraClient) => {
 
         res.send(find.image);
     } catch (e) {
-        respond(res, e.message);
+        respond(res, e.message, {}, 404);
     }
 };
 

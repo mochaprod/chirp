@@ -1,9 +1,9 @@
 import { Response } from "express";
 import { ResponseSchema } from "../models/express";
 
-export const respond = (res: Response, error?: string, more: object = {}) => {
+export const respond = (res: Response, error?: string, more: object = {}, errorCode: number = 500) => {
     res
-        .status(error ? 500 : 200)
+        .status(error ? errorCode : 200)
         .send({
             status: error ? "error" : "OK",
             error,
