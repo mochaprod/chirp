@@ -121,7 +121,7 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
         }
 
         if (reqHasMedia) {
-            filter.push({
+            must.push({
                 exists: {
                     field: "media"
                 }
@@ -147,10 +147,11 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
                     ownerName: username,
                     retweeted,
                     likes,
-                    parentID
+                    parentID,
+                    media
                 }
             }) => ({
-                id, childType, time, username, content, retweeted,
+                id, childType, time, username, content, retweeted, media,
                 parent: parentID,
                 property: {
                     likes
