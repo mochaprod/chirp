@@ -90,13 +90,17 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             });
         }
 
-        if (reqRank === "time") {
-            filter.push({
-                range: {
-                    timestamp: {
-                        lte: timestamp
-                    }
+        filter.push({
+            range: {
+                timestamp: {
+                    lte: timestamp
                 }
+            }
+        });
+
+        if (reqRank === "time") {
+            sort.push({
+                timestamp: { order: "desc" }
             });
         } else {
             sort.push({
