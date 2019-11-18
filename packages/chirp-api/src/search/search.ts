@@ -124,6 +124,14 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             });
         }
 
+        if (reqHasMedia) {
+            filter.push({
+                exists: {
+                    field: "media"
+                }
+            });
+        }
+
         const { body } = await elastic().search({
             size: limit,
             must,
@@ -133,33 +141,28 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
         });
 
         const hits = body.hits.hits as any[];
-        const ids = hits.map(({ _id: id }) => id);
+        const items = hits
+            .map(({
+                _id: id,
+                _source: {
+                    childType,
+                    timestamp: time,
+                    content,
+                    ownerName: username,
+                    retweeted,
+                    likes,
+                    parentID
+                }
+            }) => ({
+                id, childType, time, username, content, retweeted,
+                parent: parentID,
+                property: {
+                    likes
+                }
+            }));
 
         // MongoClient.find using an array of ids does not guarantee order!
         // Change query if order is a requirement.
-        const items = await Items
-            .find({
-                _id: {
-                    $in: ids
-                }
-            })
-            .map((payload) => {
-                const item: ItemPayload = {
-                    id: payload._id,
-                    username: payload.ownerName,
-                    content: payload.content,
-                    childType: payload.childType,
-                    timestamp: payload.timestamp,
-                    retweeted: payload.retweeted,
-                    property: {
-                        likes: payload.likes
-                    }
-                };
-
-                return item;
-            })
-            .toArray();
-
         res.send({
             status: "OK",
             items

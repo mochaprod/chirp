@@ -80,7 +80,8 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
             content,
             parentID: parent,
             retweeted: 0,
-            likes: 0
+            likes: 0,
+            media
         };
 
         await elastic().insert<ItemCoreModel>(
@@ -91,7 +92,6 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
         await Items.insertOne({
             ...item,
             _id: itemID,
-            media,
             likedBy: []
         });
 

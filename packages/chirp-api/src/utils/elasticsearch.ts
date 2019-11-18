@@ -46,14 +46,7 @@ class ElasticChirpClient {
                 index: this.index,
                 body: {
                     size: config.size,
-                    sort: [
-                        {
-                            timestamp: {
-                                order: "desc"
-                            }
-                        },
-                        ...sort
-                    ],
+                    sort,
                     query: {
                         bool: {
                             must,

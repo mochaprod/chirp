@@ -33,6 +33,7 @@ export interface ItemCoreModel {
     ownerName: string;
     retweeted: number;
     likes: number;
+    media?: string[];
 }
 
 export interface LikesModel extends MongoDocument {
