@@ -102,10 +102,6 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             sort.push({
                 timestamp: { order: "desc" }
             });
-        } else {
-            sort.push({
-                likes: { order: "desc" }
-            });
         }
 
         if (reqParent && reqReplies !== false) {
@@ -141,7 +137,7 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
         });
 
         const hits = body.hits.hits as any[];
-        const items = hits
+        let items = hits
             .map(({
                 _id: id,
                 _source: {
@@ -160,6 +156,17 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
                     likes
                 }
             }));
+
+        if (reqRank !== "time") {
+            items = items.sort((
+                { retweeted: retweetedA, property: { likes: likesA } },
+                { retweeted: retweetedB, property: { likes: likesB } }
+            ) => {
+                const val = retweetedB + likesB - retweetedA + likesA;
+
+                return val;
+            });
+        }
 
         // MongoClient.find using an array of ids does not guarantee order!
         // Change query if order is a requirement.

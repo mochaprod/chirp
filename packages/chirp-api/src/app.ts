@@ -170,8 +170,12 @@ app.get(
     (req, res) => media(req, res, cassandra)
 );
 
-app.get("/elastic/clear", async (_, res) => {
+app.get("/reset", async (_, res) => {
     await elastic().deleteAll();
+    await Collections.Users.drop();
+    await Collections.Items.drop();
+    await Collections.Follows.drop();
+    await Collections.Likes.drop();
 
     res.send({
         status: "OK"
