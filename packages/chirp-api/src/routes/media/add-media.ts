@@ -15,7 +15,7 @@ const addMedia = async (
         }
 
         const file: Buffer = req.file.buffer;
-        const id = await client.insert(file);
+        const id = await client.insert(user.id, file);
 
         res.send({
             id: id.toString(),

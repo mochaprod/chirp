@@ -1,6 +1,6 @@
 import cassandra from "cassandra-driver";
 
-const INSERT_QUERY = "INSERT INTO images (id, image) VALUES (?, ?)";
+const INSERT_QUERY = "INSERT INTO images (id, image, used, user_id) VALUES (?, ?, false, ?);"
 const SELECT_QUERY = "SELECT image FROM images WHERE id = ?";
 
 class CassandraClient {
@@ -33,9 +33,9 @@ class CassandraClient {
         this.Uuid = cassandra.types.Uuid;
     }
 
-    public async insert(image: Buffer) {
+    public async insert(user_id: String, image: Buffer) {
         const id = this.Uuid.random();
-        const params = [id, image];
+        const params = [id, image, user_id];
         await this.client.execute(INSERT_QUERY, params, { prepare: true });
 
         return id;
