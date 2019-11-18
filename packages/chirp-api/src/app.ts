@@ -176,6 +176,7 @@ app.get("/reset", async (_, res) => {
     await Collections.Items.drop();
     await Collections.Follows.drop();
     await Collections.Likes.drop();
+    await cassandra.reset();
 
     res.send({
         status: "OK"

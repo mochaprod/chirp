@@ -4,6 +4,7 @@ const INSERT_QUERY = "INSERT INTO images (id, image, used, user_id) VALUES (?, ?
 const SELECT_QUERY = "SELECT * FROM images WHERE id = ?";
 const UPDATE_USED_QUERY = "UPDATE images SET used = true WHERE id = ?;";
 const DELETE_QUERY = "DELETE FROM images WHERE id = ?;";
+const TRUNCATE_QUERY = "TRUNCATE images;";
 
 class CassandraClient {
     private client: cassandra.Client;
@@ -73,6 +74,12 @@ class CassandraClient {
         const params = [id];
 
         await this.client.execute(DELETE_QUERY, params, { prepare: true });
+
+        return true;
+    }
+
+    public async reset() {
+        await this.client.execute(TRUNCATE_QUERY);
 
         return true;
     }
