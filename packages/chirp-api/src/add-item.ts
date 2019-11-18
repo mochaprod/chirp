@@ -1,12 +1,14 @@
 import shortid from "shortid";
 
-import { RequestHandlerDB, ResponseSchema } from "./models/express";
+import { ResponseSchema, RequestHandlerCassandra } from "./models/express";
 import { ItemModel, ItemCoreModel, ContentType } from "./models/item";
 
 import { respond } from "./utils/response";
 import elastic from "./utils/elasticsearch";
 
-const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
+const addItem: RequestHandlerCassandra<ItemModel> = async (
+    req, res, cassandra, Items
+) => {
     try {
         const { user, body: {
             childType,
@@ -47,6 +49,20 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             } else {
                 throw new Error("No parent for reply/retweet!");
             }
+        }
+
+        if (media) {
+            const mediaIDs = media as string[];
+
+            mediaIDs.forEach(async (id) => {
+                const find = await cassandra.retrieve(id);
+
+                if (!find) {
+                    throw new Error(`Media ${id} does not exist!`);
+                } else if (find.user !== user.id) {
+                    throw new Error(`Media ${id} does not belong to you!`);
+                }
+            });
         }
 
         const itemID = shortid.generate();
