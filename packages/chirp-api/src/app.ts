@@ -160,7 +160,7 @@ app.use("/user", (req, res, next) => createUserRouter(
 
 app.post(
     "/addmedia",
-    upload.single('content'),
+    upload.single("content"),
     loggedInOnly(),
     (req, res) => addMedia(req, res, cassandra)
 );

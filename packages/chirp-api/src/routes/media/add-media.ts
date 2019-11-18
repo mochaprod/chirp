@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
+
 import { ResponseSchema } from "../../models/express";
-import { RequestParams } from "@elastic/elasticsearch";
 import CassandraClient from "../../utils/cassandra";
 import { respond } from "../../utils/response";
 
-const addMedia = (req: Request, res: Response, client: CassandraClient) => {
+const addMedia = async (
+    req: Request, res: Response, client: CassandraClient
+) => {
     try {
         const { user } = req;
 
@@ -12,11 +14,11 @@ const addMedia = (req: Request, res: Response, client: CassandraClient) => {
             throw new Error("[app.add-media] No user!");
         }
 
-        let file: Buffer = req.file.buffer;
-        let id = client.insert(file);
+        const file: Buffer = req.file.buffer;
+        const id = await client.insert(file);
 
         res.send({
-            id: id,
+            id: id.toString(),
             status: "OK"
         } as ResponseSchema);
     } catch (e) {
