@@ -137,7 +137,7 @@ app.post("/item/:id/like", (req, res) => like(
 app.delete(
     "/item/:id",
     loggedInOnly(),
-    (req, res) => deleteItem(req, res, Collections.Items)
+    (req, res) => deleteItem(req, res, cassandra, Collections.Items)
 );
 
 app.post("/search", async (req, res) => search(
