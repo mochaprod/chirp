@@ -2,6 +2,7 @@ import cassandra from "cassandra-driver";
 
 const INSERT_QUERY = "INSERT INTO images (id, image, used, user_id) VALUES (?, ?, false, ?);"
 const SELECT_QUERY = "SELECT image FROM images WHERE id = ?";
+const UPDATE_USED_QUERY = "UPDATE images SET used = true WHERE id = ?;";
 
 class CassandraClient {
     private client: cassandra.Client;
@@ -46,6 +47,12 @@ class CassandraClient {
         const results: cassandra.types.ResultSet = await this.client.execute(SELECT_QUERY, params, { prepare: true });
 
         return results.first().get("image");
+    }
+
+    public async set_used(id: string) {
+        const params = [id];
+        await this.client.execute(UPDATE_USED_QUERY, params, { prepare: true });
+        return true;
     }
 }
 
