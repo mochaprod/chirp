@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import multer from "multer";
 import morgan from "morgan";
 import mongo from "mongodb";
 
@@ -20,12 +21,15 @@ import deleteItem from "./delete-item";
 import login from "./login";
 import logout from "./logout";
 import follow from "./routes/user/follow";
+import addMedia from "./routes/media/add-media";
+import media from "./routes/media/media";
 import search from "./search/search";
 
 import connect, { Collections } from "./db/database";
 import { loggedInOnly } from "./cookies/auth";
 import { respond } from "./utils/response";
 import elastic from "./utils/elasticsearch";
+import CassandraClient from "./utils/cassandra";
 
 dotenv.config();
 elastic();
@@ -56,6 +60,9 @@ app.use(express.static(path.join(__dirname, "../../chirp-ui-static/")));
 
 let db: mongo.Db;
 let Collections: Collections;
+let cassandra = new CassandraClient();
+
+let upload = multer();
 
 app.use(
     [
@@ -80,7 +87,7 @@ app.post("/logout", logout);
 app.post("/verify", (req, res) => verify(req, res, Collections.Users));
 
 app.post("/additem", (req, res) => {
-    addItem(req, res, Collections.Items);
+    addItem(req, res, cassandra, Collections.Items);
 });
 
 app.get("/item/:id", async (req, res) => {
@@ -106,6 +113,8 @@ app.get("/item/:id", async (req, res) => {
             childType: result.childType,
             timestamp: result.timestamp,
             retweeted: result.retweeted,
+            parent: result.parentID,
+            media: result.media,
             property: {
                 likes: result.likes
             }
@@ -121,12 +130,14 @@ app.get("/item/:id", async (req, res) => {
     }
 });
 
-app.get("/item/:id/like", (req, res) => like(req, res, Collections.Items));
+app.post("/item/:id/like", (req, res) => like(
+    req, res, Collections.Items, Collections.Likes
+));
 
 app.delete(
     "/item/:id",
     loggedInOnly(),
-    (req, res) => deleteItem(req, res, Collections.Items)
+    (req, res) => deleteItem(req, res, cassandra, Collections.Items)
 );
 
 app.post("/search", async (req, res) => search(
@@ -147,8 +158,25 @@ app.use("/user", (req, res, next) => createUserRouter(
     Collections
 ));
 
-app.get("/elastic/clear", async (_, res) => {
+app.post(
+    "/addmedia",
+    upload.single("content"),
+    loggedInOnly(),
+    (req, res) => addMedia(req, res, cassandra)
+);
+
+app.get(
+    "/media/:id",
+    (req, res) => media(req, res, cassandra)
+);
+
+app.get("/reset", async (_, res) => {
     await elastic().deleteAll();
+    await Collections.Users.drop();
+    await Collections.Items.drop();
+    await Collections.Follows.drop();
+    await Collections.Likes.drop();
+    await cassandra.reset();
 
     res.send({
         status: "OK"

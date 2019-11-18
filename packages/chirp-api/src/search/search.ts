@@ -17,7 +17,11 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             timestamp: reqTimestamp,
             q: reqQuery,
             username: reqUsername,
-            following: reqFollowing
+            following: reqFollowing,
+            rank: reqRank,
+            parent: reqParent,
+            replies: reqReplies,
+            hasMedia: reqHasMedia
         } } = req;
 
         if (typeof reqLimit !== "number" && reqLimit !== undefined) {
@@ -49,6 +53,7 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
         const must: any[] = [];
         const filter: any[] = [];
         const mustNot: any[] = [];
+        const sort: any[] = [];
 
         if (reqQuery) {
             must.push({
@@ -93,41 +98,79 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
             }
         });
 
+        if (reqRank === "time") {
+            sort.push({
+                timestamp: { order: "desc" }
+            });
+        }
+
+        if (reqParent && reqReplies !== false) {
+            must.push({
+                match: {
+                    parentID: reqParent
+                }
+            });
+        }
+
+        if (reqReplies === false) {
+            mustNot.push({
+                match: {
+                    childType: "reply"
+                }
+            });
+        }
+
+        if (reqHasMedia) {
+            must.push({
+                exists: {
+                    field: "media"
+                }
+            });
+        }
+
         const { body } = await elastic().search({
             size: limit,
             must,
             filter,
-            mustNot
+            mustNot,
+            sort
         });
 
         const hits = body.hits.hits as any[];
-        const ids = hits.map(({ _id: id }) => id);
+        let items = hits
+            .map(({
+                _id: id,
+                _source: {
+                    childType,
+                    timestamp: time,
+                    content,
+                    ownerName: username,
+                    retweeted,
+                    likes,
+                    parentID,
+                    media
+                }
+            }) => ({
+                id, childType, time, username, content, retweeted, media,
+                parent: parentID,
+                property: {
+                    likes
+                }
+            }));
+
+        if (reqRank !== "time") {
+            items = items.sort((
+                { retweeted: retweetedA, property: { likes: likesA } },
+                { retweeted: retweetedB, property: { likes: likesB } }
+            ) => {
+                const val = retweetedB + likesB - retweetedA + likesA;
+
+                return val;
+            });
+        }
 
         // MongoClient.find using an array of ids does not guarantee order!
         // Change query if order is a requirement.
-        const items = await Items
-            .find({
-                _id: {
-                    $in: ids
-                }
-            })
-            .map((payload) => {
-                const item: ItemPayload = {
-                    id: payload._id,
-                    username: payload.ownerName,
-                    content: payload.content,
-                    childType: payload.childType,
-                    timestamp: payload.timestamp,
-                    retweeted: payload.retweeted,
-                    property: {
-                        likes: payload.likes
-                    }
-                };
-
-                return item;
-            })
-            .toArray();
-
         res.send({
             status: "OK",
             items

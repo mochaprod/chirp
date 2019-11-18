@@ -7,13 +7,15 @@ export interface Collections {
     Users: Collection<UserModel>;
     Items: Collection<ItemModel>;
     Follows: Collection<FollowsModel>;
+    Likes: Collection<LikesModel>;
 }
 
 const connect = (db: Db) => {
     return {
         Users: db.collection<UserModel>("users"),
         Items: db.collection<ItemModel>("items"),
-        Follows: db.collection<FollowsModel>("follows")
+        Follows: db.collection<FollowsModel>("follows"),
+        Likes: db.collection<LikesModel>("likes")
     } as Collections;
 };
 

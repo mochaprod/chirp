@@ -1,6 +1,8 @@
 - name: Install Cassandra
   hosts: cassandra
-  remote_user: ubuntu
+  remote_user: root
+  vars:
+    path: ~/chirp/packages/chirp-cassandra
   tasks:
   - name: Add Cassandra repository key
     shell: "curl https://www.apache.org/dist/cassandra/KEYS | sudo apt-key add -"
@@ -20,3 +22,41 @@
       state: latest
       force_apt_get: yes
       update_cache: yes
+  - name: Add rackdc.properties config to machine
+    become: yes
+    copy:
+      src: "{{ path }}/cassandra-rackdc.properties"
+      dest: /etc/cassandra/cassandra-rackdc.properties 
+      force: yes
+  - name: Add .yaml config to machine
+    become: yes
+    copy:
+      src: "{{ path }}/cassandra.yaml"
+      dest: /etc/cassandra/cassandra.yaml
+      force: yes
+  - name: Replace listen_address in .yaml
+    become: yes
+    replace:
+      path: /etc/cassandra/cassandra.yaml
+      regexp: "listen_address:"
+      replace: "listen_address: {{ ansible_facts.eth0.ipv4.address }}"
+  - name: Replace rpc_address in .yaml
+    become: yes
+    replace:
+      path: /etc/cassandra/cassandra.yaml
+      # Will also match broadcast_rpc_address, but it is currently commented so shouldn't be an issue...
+      regexp: "rpc_address:"
+      replace: "rpc_address: {{ ansible_facts.eth0.ipv4.address }}"
+  - name: Add seeds into .yaml
+    become: yes
+    replace:
+      path: /etc/cassandra/cassandra.yaml
+      regexp: "seeds:"
+      replace: "seeds: \"{% for host in groups['cassandra'] -%}
+          {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}{% if not loop.last %},{% endif %}
+        {%- endfor %}\""
+  - name: Restart Cassandra
+    become: yes
+    service:
+      name: cassandra
+      state: restarted
