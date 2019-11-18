@@ -54,19 +54,19 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
         if (media) {
             const mediaIDs = media as string[];
 
-            mediaIDs.forEach(async (id) => {
-                const find = await cassandra.retrieve(id);
+            for (const mediaID of mediaIDs) {
+                const find = await cassandra.retrieve(mediaID);
 
                 if (!find) {
-                    throw new Error(`Media ${id} does not exist!`);
+                    throw new Error(`Media ${mediaID} does not exist!`);
                 } else if (find.user !== user.id) {
-                    throw new Error(`Media ${id} does not belong to you!`);
+                    throw new Error(`Media ${mediaID} does not belong to you!`);
                 } else if (find.used) {
-                    throw new Error(`Media ${id} already in use!`);
+                    throw new Error(`Media ${mediaID} already in use!`);
                 } else {
-                    await cassandra.setUsed(id);
+                    await cassandra.setUsed(mediaID);
                 }
-            });
+            }
         }
 
         const itemID = shortid.generate();
