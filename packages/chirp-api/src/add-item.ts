@@ -61,6 +61,10 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
                     throw new Error(`Media ${id} does not exist!`);
                 } else if (find.user !== user.id) {
                     throw new Error(`Media ${id} does not belong to you!`);
+                } else if (find.used) {
+                    throw new Error(`Media ${id} already in use!`);
+                } else {
+                    await cassandra.setUsed(id);
                 }
             });
         }
