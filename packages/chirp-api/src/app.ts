@@ -87,7 +87,7 @@ app.post("/logout", logout);
 app.post("/verify", (req, res) => verify(req, res, Collections.Users));
 
 app.post("/additem", (req, res) => {
-    addItem(req, res, Collections.Items);
+    addItem(req, res, cassandra, Collections.Items);
 });
 
 app.get("/item/:id", async (req, res) => {
