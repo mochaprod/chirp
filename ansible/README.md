@@ -6,7 +6,7 @@ For each host in hosts, you should have a separate cloud instance (overlapping i
 
 Don't forget to open up the relevant ports:
 
-* Cassandra: ?
+* Cassandra: 9042
 * Elasticsearch: 9200
 * Mongo: 27017 - 27019
 * Postfix: 2525 (default is 25, but there are firewall issues with cloud providers atm) -- `.yml` in progress
