@@ -1,0 +1,30 @@
+- name: Install Postfix
+  hosts: postfix
+  remote_user: ubuntu
+  vars:
+    path: ~/Desktop/Fall/CSE356/chirp/packages/chirp-postfix
+  tasks:
+  - name: Install Postfix
+    become: yes
+    apt:
+      name: postfix
+      state: latest
+      force_apt_get: yes
+      update_cache: yes
+  - name: Add main.cf to machine
+    become: yes
+    copy:
+      src: "{{ path }}/main.cf"
+      dest: /etc/postfix/main.cf
+      force: yes
+  - name: Add master.cf to machine
+    become: yes
+    copy:
+      src: "{{ path }}/master.cf"
+      dest: /etc/postfix/master.cf
+      force: yes
+  - name: Restart Postfix
+    become: yes
+    service:
+      name: postfix
+      state: restarted
