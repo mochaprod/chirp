@@ -8,7 +8,9 @@ import LoadingFallback from "./components/LoadingFallback";
 
 import routes from "./routes/chirp";
 
+import styles from "./App.module.scss";
 import "./App.css";
+import Layout from "./components/views/Layout";
 
 const App: React.FC = () => {
     const renderFallback = () => (
@@ -22,9 +24,15 @@ const App: React.FC = () => {
                     <React.Suspense
                         fallback={ renderFallback() }
                     >
-                        <ChirpRouter
-                            routes={ routes }
-                        />
+                        <Layout>
+                            <div
+                                className={ styles.app }
+                            >
+                                <ChirpRouter
+                                    routes={ routes }
+                                />
+                            </div>
+                        </Layout>
                     </React.Suspense>
                 </UserProvider>
             </StorageProvider>

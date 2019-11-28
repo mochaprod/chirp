@@ -8,3 +8,9 @@ export interface Item {
     content: string;
     timestamp: number;
 }
+
+export interface UserDetails {
+    email: string;
+    followers: number;
+    following: number;
+}

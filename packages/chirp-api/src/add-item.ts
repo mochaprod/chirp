@@ -1,12 +1,14 @@
 import shortid from "shortid";
 
-import { RequestHandlerDB, ResponseSchema } from "./models/express";
-import { ItemModel, ItemCoreModel } from "./models/item";
+import { ResponseSchema, RequestHandlerCassandra } from "./models/express";
+import { ItemModel, ItemCoreModel, ContentType } from "./models/item";
 
 import { respond } from "./utils/response";
 import elastic from "./utils/elasticsearch";
 
-const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
+const addItem: RequestHandlerCassandra<ItemModel> = async (
+    req, res, cassandra, Items
+) => {
     try {
         const { user, body: {
             childType,
@@ -23,17 +25,63 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
             throw new Error("No content was provided!");
         }
 
+        if (
+            childType === ContentType.RETWEET
+            || childType === ContentType.REPLY
+        ) {
+            if (parent) {
+                if (childType === ContentType.RETWEET) {
+                    await elastic()
+                        .update(
+                            parent,
+                            {
+                                script: "ctx._source.retweeted += 1"
+                            }
+                        );
+
+                    await Items.updateOne(
+                        { _id: parent },
+                        { $inc: {
+                            retweeted: 1
+                        } }
+                    );
+                }
+            } else {
+                throw new Error("No parent for reply/retweet!");
+            }
+        }
+
+        if (media) {
+            const mediaIDs = media as string[];
+
+            for (const mediaID of mediaIDs) {
+                const find = await cassandra.retrieve(mediaID);
+
+                if (!find) {
+                    throw new Error(`Media ${mediaID} does not exist!`);
+                } else if (find.user !== user.id) {
+                    throw new Error(`Media ${mediaID} does not belong to you!`);
+                } else if (find.used) {
+                    throw new Error(`Media ${mediaID} already in use!`);
+                } else {
+                    await cassandra.setUsed(mediaID);
+                }
+            }
+        }
+
         const itemID = shortid.generate();
         const timestamp = Math.round(Date.now() / 1000);
 
         const item: ItemCoreModel = {
-            id: itemID,
             childType: childType || null,
             ownerID: user.id,
             ownerName: user.name,
             timestamp,
             content,
-            parentID: parent || null
+            parentID: parent,
+            retweeted: 0,
+            likes: 0,
+            media
         };
 
         await elastic().insert<ItemCoreModel>(
@@ -43,9 +91,7 @@ const addItem: RequestHandlerDB<ItemModel> = async (req, res, Items) => {
 
         await Items.insertOne({
             ...item,
-            retweeted: 0,
-            media,
-            likes: 0,
+            _id: itemID,
             likedBy: []
         });
 

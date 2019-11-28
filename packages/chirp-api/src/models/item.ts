@@ -1,8 +1,8 @@
 import { MongoDocument } from "./mongo";
 
 export enum ContentType {
-    RETWEET = "RETWEET",
-    REPLY = "REPLY"
+    RETWEET = "retweet",
+    REPLY = "reply"
 }
 
 export interface ItemPayload {
@@ -21,19 +21,19 @@ export interface ItemPayload {
 
 export interface ItemModel extends MongoDocument, ItemCoreModel {
     media?: string[];
-    retweeted: number;
-    likes: number;
     likedBy: string[];
 }
 
 export interface ItemCoreModel {
-    id: string;
     content: string;
     childType?: ContentType | null;
     parentID?: string;
     timestamp: number;
     ownerID: string;
     ownerName: string;
+    retweeted: number;
+    likes: number;
+    media?: string[];
 }
 
 export interface LikesModel extends MongoDocument {

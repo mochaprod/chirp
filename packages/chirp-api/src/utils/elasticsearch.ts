@@ -5,6 +5,7 @@ export interface SearchOptions {
     must: any[];
     mustNot: any[];
     filter: any[];
+    sort: any[];
 }
 
 class ElasticChirpClient {
@@ -28,8 +29,11 @@ class ElasticChirpClient {
     }
 
     public async search(config: SearchOptions) {
-        const must: any[] = config.must;
-        const filter: any[] = config.filter;
+        const {
+            must,
+            filter,
+            sort,
+        } = config;
 
         if (must.length === 0) {
             must.push({
@@ -42,6 +46,7 @@ class ElasticChirpClient {
                 index: this.index,
                 body: {
                     size: config.size,
+                    sort,
                     query: {
                         bool: {
                             must,
@@ -59,6 +64,15 @@ class ElasticChirpClient {
     public async insert<T>(id: string, body: T) {
         return this.client
             .index({
+                index: this.index,
+                id,
+                body
+            });
+    }
+
+    public async update<T>(id: string, body: Partial<T>) {
+        return this.client
+            .update({
                 index: this.index,
                 id,
                 body

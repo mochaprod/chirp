@@ -8,6 +8,7 @@ import NotFound from "../components/views/NotFound";
 import Login from "../components/views/Login";
 import Logout from "../components/views/Logout";
 import Verify from "../components/views/Verify";
+import User from "../components/views/User";
 import withRequireAuthentication from "../components/auth/withRequireAuthentication";
 
 const chirpRoutes: Route[] = [
@@ -40,6 +41,11 @@ const chirpRoutes: Route[] = [
         to: "/tweet/:id",
         exact: true,
         component: React.lazy(() => import("../components/views/ViewTweet"))
+    },
+    {
+        to: "/profile/:user",
+        exact: true,
+        component: User
     },
     {
         to: "/search",
