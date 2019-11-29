@@ -1,5 +1,7 @@
 # Ansible
 
+Where all the Ansible tasks are located.
+
 ## Instances
 
 For each host in hosts, you should have a separate cloud instance (overlapping instances is not preferred).
@@ -26,3 +28,7 @@ You also have to configure the following files in the [chirp-mongodb](../package
 * `config/primary.js` with all the config server instances
 * `query/mongos.conf` with all the config server instances (in the `sharding: configDB:` line)
 * `shard/init.js` with all the shard instances
+
+## Notes
+
+In `cassandra.yml` I assume the machines are connected to the Internet via LAN, and use the `eth0` network interface (the first Ethernet interface) to grab some information about the system.
