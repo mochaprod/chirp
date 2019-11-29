@@ -20,7 +20,7 @@
 #
 # Use a descriptive name for the node:
 #
-node.name: node-1
+node.name:
 #
 # Add custom attributes to the node:
 #
@@ -66,13 +66,13 @@ http.port: 9200
 # Pass an initial list of hosts to perform discovery when this node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-#discovery.seed_hosts: ["host1", "host2"]
+discovery.seed_hosts:
 #
 # Bootstrap the cluster using an initial set of master-eligible nodes:
 #
 #cluster.initial_master_nodes: ["node-1", "node-2"]
 # See https://www.elastic.co/guide/en/elasticsearch/reference/7.0/breaking-changes-7.0.html#_discovery_configuration_is_required_in_production
-cluster.initial_master_nodes: ["node-1"]
+cluster.initial_master_nodes: ["node-0"]
 #
 # For more information, consult the discovery and cluster formation module documentation.
 #

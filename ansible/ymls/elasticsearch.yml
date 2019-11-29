@@ -35,6 +35,20 @@
       src: "{{ path }}/elasticsearch.yml"
       dest: /etc/elasticsearch/elasticsearch.yml
       force: yes
+  - name: Replace node.name in .yaml
+    become: yes
+    replace:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regexp: "node.name:"
+      replace: "node.name: node-{{ groups['elasticsearch'].index(inventory_hostname) }}"
+  - name: Set seed_hosts in .yaml
+    become: yes
+    replace:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regexp: "discovery.seed_hosts:"
+      replace: "discovery.seed_hosts: [{% for host in groups['elasticsearch'] -%}
+          \"{{ hostvars[host]['ansible_default_ipv4']['address'] }}\"{% if not loop.last %},{% endif %}
+        {%- endfor %}]"
   - name: Start Elasticsearch
     become: yes
     service:
