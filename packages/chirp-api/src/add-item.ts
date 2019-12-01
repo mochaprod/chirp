@@ -89,8 +89,7 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
             item
         );
 
-        // Removed await
-        Items.insertOne({
+        await Items.insertOne({
             ...item,
             _id: itemID,
         });
