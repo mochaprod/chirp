@@ -31,7 +31,7 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
         ) {
             if (parent) {
                 if (childType === ContentType.RETWEET) {
-                    await elastic()
+                    elastic()
                         .update(
                             parent,
                             {
@@ -39,7 +39,7 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
                             }
                         );
 
-                    await Items.updateOne(
+                    Items.updateOne(
                         { _id: parent },
                         { $inc: {
                             retweeted: 1
