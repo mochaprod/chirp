@@ -21,7 +21,6 @@ export interface ItemPayload {
 
 export interface ItemModel extends MongoDocument, ItemCoreModel {
     media?: string[];
-    likedBy: string[];
 }
 
 export interface ItemCoreModel {

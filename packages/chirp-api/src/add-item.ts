@@ -92,7 +92,6 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
         await Items.insertOne({
             ...item,
             _id: itemID,
-            likedBy: []
         });
 
         res.send({
