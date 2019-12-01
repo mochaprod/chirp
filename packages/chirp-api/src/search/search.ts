@@ -151,7 +151,8 @@ const search: RequestHandlerDB<ItemModel, FollowsModel> = async (req, res, Items
                     media
                 }
             }) => ({
-                id, childType, time, username, content, retweeted, media,
+                id, childType, username, content, retweeted, media,
+                timestamp: time,
                 parent: parentID,
                 property: {
                     likes
