@@ -104,14 +104,16 @@ class ElasticChirpClient {
     }
 }
 
-function elastic() {
+function createElasticClient() {
     let client: ElasticChirpClient | null = null;
 
-    if (!client) {
-        client = new ElasticChirpClient();
-    }
+    return () => {
+        if (!client) {
+            client = new ElasticChirpClient();
+        }
 
-    return client;
+        return client;
+    };
 }
 
-export default elastic;
+export default createElasticClient();
