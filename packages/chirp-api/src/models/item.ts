@@ -40,3 +40,8 @@ export interface LikesModel extends MongoDocument {
     owner: string;
     itemID: string;
 }
+
+export interface MediaModel extends MongoDocument {
+    owner: string;
+    used: boolean;
+}

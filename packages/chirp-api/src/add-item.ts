@@ -1,13 +1,13 @@
 import shortid from "shortid";
 
-import { ResponseSchema, RequestHandlerCassandra } from "./models/express";
-import { ItemModel, ItemCoreModel, ContentType } from "./models/item";
+import { ResponseSchema, RequestHandlerDB } from "./models/express";
+import { ItemModel, ItemCoreModel, ContentType, MediaModel } from "./models/item";
 
 import { respond } from "./utils/response";
 import elastic from "./utils/elasticsearch";
 
-const addItem: RequestHandlerCassandra<ItemModel> = async (
-    req, res, cassandra, Items
+const addItem: RequestHandlerDB<ItemModel, MediaModel> = async (
+    req, res, Items, Media
 ) => {
     try {
         const { user, body: {
@@ -17,7 +17,7 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
             media
         } } = req;
 
-        if (!user) {
+        if (!user || !Media) {
             throw new Error("Internal error!");
         }
 
@@ -55,16 +55,21 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
             const mediaIDs = media as string[];
 
             for (const mediaID of mediaIDs) {
-                const find = await cassandra.retrieveMetaData(mediaID);
+                const find = await Media.findOne({
+                    _id: mediaID
+                });
 
                 if (!find) {
                     throw new Error(`Media ${mediaID} does not exist!`);
-                } else if (find.user !== user.id) {
+                } else if (find.owner !== user.id) {
                     throw new Error(`Media ${mediaID} does not belong to you!`);
                 } else if (find.used) {
                     throw new Error(`Media ${mediaID} already in use!`);
                 } else {
-                    await cassandra.setUsed(mediaID);
+                    await Media.updateOne(
+                        { _id: mediaID },
+                        { used: true }
+                    );
                 }
             }
         }
