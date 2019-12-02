@@ -26,11 +26,11 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
             ? true
             : bodyLike;
 
-        const result = await Items.findOne({
+        const result = await Items.countDocuments({
             _id: id
         });
 
-        if (!result) {
+        if (result <= 0) {
             throw new Error(`Item ${id} doesn't exist!`);
         }
 

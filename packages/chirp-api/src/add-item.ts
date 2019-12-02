@@ -30,6 +30,14 @@ const addItem: RequestHandlerDB<ItemModel, MediaModel> = async (
             || childType === ContentType.REPLY
         ) {
             if (parent) {
+                const parentExists = await Items.findOne({
+                    _id: parent
+                });
+
+                if (!parentExists) {
+                    throw new Error("Parent doesn't exist!");
+                }
+
                 if (childType === ContentType.RETWEET) {
                     await elastic()
                         .update(

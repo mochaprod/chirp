@@ -1,11 +1,11 @@
-import { RequestHandlerDB, RequestHandlerCassandra } from "./models/express";
-import { ItemModel } from "./models/item";
+import { RequestHandlerCassandra } from "./models/express";
+import { ItemModel, MediaModel } from "./models/item";
 
 import { respond } from "./utils/response";
 import elastic from "./utils/elasticsearch";
 
-const deleteItem: RequestHandlerCassandra<ItemModel> = async (
-    req, res, cassandra, Items
+const deleteItem: RequestHandlerCassandra<ItemModel, MediaModel> = async (
+    req, res, cassandra, Items, Media
 ) => {
     const {
         user,
@@ -15,7 +15,7 @@ const deleteItem: RequestHandlerCassandra<ItemModel> = async (
     } = req;
 
     try {
-        if (!user) {
+        if (!user || !Media) {
             throw new Error("[app.delete] Internal error!");
         }
 
@@ -29,9 +29,13 @@ const deleteItem: RequestHandlerCassandra<ItemModel> = async (
             await elastic().delete(id);
 
             if (found.media) {
-                for (const file of found.media) {
-                    await cassandra.delete(file);
-                }
+                await Media.deleteMany({
+                    _id: { $in: found.media }
+                });
+
+                await Promise.all(
+                    found.media.map(cassandra.delete)
+                );
             }
 
             respond(res);
