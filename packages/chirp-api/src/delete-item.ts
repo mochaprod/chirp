@@ -34,7 +34,7 @@ const deleteItem: RequestHandlerCassandra<ItemModel, MediaModel> = async (
                 });
 
                 await Promise.all(
-                    found.media.map(cassandra.delete)
+                    found.media.map((mediaID) => cassandra.delete(mediaID))
                 );
             }
 
