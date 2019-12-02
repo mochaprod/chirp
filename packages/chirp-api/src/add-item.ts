@@ -55,7 +55,7 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
             const mediaIDs = media as string[];
 
             for (const mediaID of mediaIDs) {
-                const find = await cassandra.retrieve(mediaID);
+                const find = await cassandra.retrieveMetaData(mediaID);
 
                 if (!find) {
                     throw new Error(`Media ${mediaID} does not exist!`);
@@ -84,7 +84,7 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
             media
         };
 
-        await elastic().insert<ItemCoreModel>(
+        elastic().insert<ItemCoreModel>(
             itemID,
             item
         );
