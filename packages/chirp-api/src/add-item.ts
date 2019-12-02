@@ -31,7 +31,7 @@ const addItem: RequestHandlerDB<ItemModel, MediaModel> = async (
         ) {
             if (parent) {
                 if (childType === ContentType.RETWEET) {
-                    elastic()
+                    await elastic()
                         .update(
                             parent,
                             {
@@ -39,7 +39,7 @@ const addItem: RequestHandlerDB<ItemModel, MediaModel> = async (
                             }
                         );
 
-                    Items.updateOne(
+                    await Items.updateOne(
                         { _id: parent },
                         { $inc: {
                             retweeted: 1
@@ -58,7 +58,9 @@ const addItem: RequestHandlerDB<ItemModel, MediaModel> = async (
                 .find({
                     _id: {
                         $in: media
-                    }
+                    },
+                    owner: user.id,
+                    used: false
                 })
                 .toArray();
 
@@ -87,7 +89,7 @@ const addItem: RequestHandlerDB<ItemModel, MediaModel> = async (
             media
         };
 
-        elastic().insert<ItemCoreModel>(
+        await elastic().insert<ItemCoreModel>(
             itemID,
             item
         );
