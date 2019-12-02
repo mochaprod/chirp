@@ -54,24 +54,22 @@ const addItem: RequestHandlerDB<ItemModel, MediaModel> = async (
         if (media) {
             const mediaIDs = media as string[];
 
-            for (const mediaID of mediaIDs) {
-                const find = await Media.findOne({
-                    _id: mediaID
-                });
+            const find = await Media
+                .find({
+                    _id: {
+                        $in: media
+                    }
+                })
+                .toArray();
 
-                if (!find) {
-                    throw new Error(`Media ${mediaID} does not exist!`);
-                } else if (find.owner !== user.id) {
-                    throw new Error(`Media ${mediaID} does not belong to you!`);
-                } else if (find.used) {
-                    throw new Error(`Media ${mediaID} already in use!`);
-                } else {
-                    await Media.updateOne(
-                        { _id: mediaID },
-                        { used: true }
-                    );
-                }
+            if (find.length !== mediaIDs.length) {
+                throw new Error("Invalid media provided!");
             }
+
+            await Media.updateMany(
+                { _id: { $in: mediaIDs } },
+                { $set: { used: true } }
+            );
         }
 
         const itemID = shortid.generate();
