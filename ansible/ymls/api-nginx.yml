@@ -2,6 +2,8 @@
 - name: nginx
   hosts: nginx
   remote_user: ubuntu
+  vars:
+    root: '~/chirp/packages/chirp-api-nginx'
   tasks:
     - name: Install nginx
       become: yes
@@ -13,12 +15,17 @@
       file:
         path: '/etc/nginx/sites-enabled/default'
         state: absent
+    - name: Copy nginx config
+      become: yes
+      copy:
+        src: "{{ root }}/nginx.conf"
+        dest: /etc/nginx/nginx.conf
+        force: yes
     - name: Copy load balancer config
       become: yes
-      file:
-        src: '/home/ubuntu/chirp/packages/chirp-api-nginx/config'
-        dest: '/etc/nginx/conf.d/lb.conf'
-        state: link
+      copy:
+        src: "{{ root }}/config"
+        dest: /etc/nginx/conf.d/lb.conf
         force: yes
     - name: Start nginx
       become: yes
