@@ -1,4 +1,5 @@
 import elasticsearch from "@elastic/elasticsearch";
+import { splitURLs } from "./env";
 
 export interface SearchOptions {
     size: number;
@@ -14,13 +15,16 @@ class ElasticChirpClient {
 
     constructor() {
         const { ELASTICSEARCH, ELASTIC_INDEX } = process.env;
-        const URL = `http://${ELASTICSEARCH}`;
 
         if (!ELASTIC_INDEX || !ELASTICSEARCH) {
             throw new Error("Elasticsearch not configured in app.");
         }
 
-        this.client = new elasticsearch.Client({ node: URL });
+        const ips = splitURLs(ELASTICSEARCH);
+
+        this.client = new elasticsearch.Client({
+            nodes: ips
+        });
         this.index = ELASTIC_INDEX;
     }
 
@@ -100,14 +104,16 @@ class ElasticChirpClient {
     }
 }
 
-function elastic() {
+function createElasticClient() {
     let client: ElasticChirpClient | null = null;
 
-    if (!client) {
-        client = new ElasticChirpClient();
-    }
+    return () => {
+        if (!client) {
+            client = new ElasticChirpClient();
+        }
 
-    return client;
+        return client;
+    };
 }
 
-export default elastic;
+export default createElasticClient();

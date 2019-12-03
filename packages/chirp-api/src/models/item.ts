@@ -21,7 +21,6 @@ export interface ItemPayload {
 
 export interface ItemModel extends MongoDocument, ItemCoreModel {
     media?: string[];
-    likedBy: string[];
 }
 
 export interface ItemCoreModel {
@@ -40,4 +39,9 @@ export interface LikesModel extends MongoDocument {
     ownerID: string;
     owner: string;
     itemID: string;
+}
+
+export interface MediaModel extends MongoDocument {
+    owner: string;
+    used: boolean;
 }

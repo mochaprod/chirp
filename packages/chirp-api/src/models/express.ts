@@ -10,11 +10,12 @@ export type RequestHandlerDB<P = any, S = any> = (
     optional?: Collection<S>
 ) => Promise<any> | void;
 
-export type RequestHandlerCassandra<P = any> = (
+export type RequestHandlerCassandra<P = any, S = any> = (
     req: Request,
     res: Response,
     cassandra: CassandraClient,
-    collection: Collection<P>
+    collection: Collection<P>,
+    optional?: Collection<S>
 ) => Promise<any> | void;
 
 export interface ResponseSchema {

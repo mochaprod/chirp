@@ -2,6 +2,7 @@ import cassandra from "cassandra-driver";
 
 const INSERT_QUERY = "INSERT INTO images (id, image, used, user_id) VALUES (?, ?, false, ?);";
 const SELECT_QUERY = "SELECT * FROM images WHERE id = ?";
+const SELECT_METADATA_QUERY = "SELECT id, used, user_id FROM images WHERE id = ?";
 const UPDATE_USED_QUERY = "UPDATE images SET used = true WHERE id = ?;";
 const DELETE_QUERY = "DELETE FROM images WHERE id = ?;";
 const TRUNCATE_QUERY = "TRUNCATE images;";
@@ -59,6 +60,26 @@ class CassandraClient {
         return {
             id: first.get("id"),
             image: first.get("image"),
+            used: first.get("used") as boolean,
+            user: first.get("user_id")
+        };
+    }
+
+    public async retrieveMetaData(id: string) {
+        const params = [id];
+
+        const results: cassandra.types.ResultSet = await this.client.execute(
+            SELECT_METADATA_QUERY, params, { prepare: true }
+        );
+
+        if (results.rowLength === 0) {
+            return null;
+        }
+
+        const first = results.first();
+
+        return {
+            id: first.get("id"),
             used: first.get("used") as boolean,
             user: first.get("user_id")
         };

@@ -87,7 +87,7 @@ app.post("/logout", logout);
 app.post("/verify", (req, res) => verify(req, res, Collections.Users));
 
 app.post("/additem", (req, res) => {
-    addItem(req, res, cassandra, Collections.Items);
+    addItem(req, res, Collections.Items, Collections.Media);
 });
 
 app.get("/item/:id", async (req, res) => {
@@ -137,7 +137,7 @@ app.post("/item/:id/like", (req, res) => like(
 app.delete(
     "/item/:id",
     loggedInOnly(),
-    (req, res) => deleteItem(req, res, cassandra, Collections.Items)
+    (req, res) => deleteItem(req, res, cassandra, Collections.Items, Collections.Media)
 );
 
 app.post("/search", async (req, res) => search(
@@ -162,7 +162,7 @@ app.post(
     "/addmedia",
     upload.single("content"),
     loggedInOnly(),
-    (req, res) => addMedia(req, res, cassandra)
+    (req, res) => addMedia(req, res, cassandra, Collections.Media)
 );
 
 app.get(
@@ -176,6 +176,7 @@ app.get("/reset", async (_, res) => {
     await Collections.Items.drop();
     await Collections.Follows.drop();
     await Collections.Likes.drop();
+    await Collections.Media.drop();
     await cassandra.reset();
 
     res.send({

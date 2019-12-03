@@ -1,11 +1,10 @@
-import { Request, Response } from "express";
+import { MediaModel } from "../../models/item";
 
-import { ResponseSchema } from "../../models/express";
-import CassandraClient from "../../utils/cassandra";
+import { ResponseSchema, RequestHandlerCassandra } from "../../models/express";
 import { respond } from "../../utils/response";
 
-const addMedia = async (
-    req: Request, res: Response, client: CassandraClient
+const addMedia: RequestHandlerCassandra<MediaModel> = async (
+    req, res, client, Media
 ) => {
     try {
         const { user } = req;
@@ -16,10 +15,15 @@ const addMedia = async (
 
         const file: Buffer = req.file.buffer;
         const id = await client.insert(user.id, file);
+        await Media.insertOne({
+            _id: id.toString(),
+            owner: user.id,
+            used: false
+        });
 
         res.send({
-            id: id.toString(),
-            status: "OK"
+            status: "OK",
+            id: id.toString()
         } as ResponseSchema);
     } catch (e) {
         respond(res, e.message);

@@ -1,13 +1,13 @@
 import shortid from "shortid";
 
-import { ResponseSchema, RequestHandlerCassandra } from "./models/express";
-import { ItemModel, ItemCoreModel, ContentType } from "./models/item";
+import { ResponseSchema, RequestHandlerDB } from "./models/express";
+import { ItemModel, ItemCoreModel, ContentType, MediaModel } from "./models/item";
 
 import { respond } from "./utils/response";
 import elastic from "./utils/elasticsearch";
 
-const addItem: RequestHandlerCassandra<ItemModel> = async (
-    req, res, cassandra, Items
+const addItem: RequestHandlerDB<ItemModel, MediaModel> = async (
+    req, res, Items, Media
 ) => {
     try {
         const { user, body: {
@@ -17,7 +17,7 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
             media
         } } = req;
 
-        if (!user) {
+        if (!user || !Media) {
             throw new Error("Internal error!");
         }
 
@@ -30,6 +30,14 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
             || childType === ContentType.REPLY
         ) {
             if (parent) {
+                const parentExists = await Items.findOne({
+                    _id: parent
+                });
+
+                if (!parentExists) {
+                    throw new Error("Parent doesn't exist!");
+                }
+
                 if (childType === ContentType.RETWEET) {
                     await elastic()
                         .update(
@@ -54,19 +62,24 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
         if (media) {
             const mediaIDs = media as string[];
 
-            for (const mediaID of mediaIDs) {
-                const find = await cassandra.retrieve(mediaID);
+            const find = await Media
+                .find({
+                    _id: {
+                        $in: media
+                    },
+                    owner: user.id,
+                    used: false
+                })
+                .toArray();
 
-                if (!find) {
-                    throw new Error(`Media ${mediaID} does not exist!`);
-                } else if (find.user !== user.id) {
-                    throw new Error(`Media ${mediaID} does not belong to you!`);
-                } else if (find.used) {
-                    throw new Error(`Media ${mediaID} already in use!`);
-                } else {
-                    await cassandra.setUsed(mediaID);
-                }
+            if (find.length !== mediaIDs.length) {
+                throw new Error("Invalid media provided!");
             }
+
+            await Media.updateMany(
+                { _id: { $in: mediaIDs } },
+                { $set: { used: true } }
+            );
         }
 
         const itemID = shortid.generate();
@@ -92,7 +105,6 @@ const addItem: RequestHandlerCassandra<ItemModel> = async (
         await Items.insertOne({
             ...item,
             _id: itemID,
-            likedBy: []
         });
 
         res.send({

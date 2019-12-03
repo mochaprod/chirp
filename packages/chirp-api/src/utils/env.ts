@@ -5,3 +5,7 @@ export const assert = (test: any, message: string) => {
         console.error(message);
     }
 };
+
+export const splitURLs = (str: string) => {
+    return str.split(",").map((url) => `http://${url}`);
+};

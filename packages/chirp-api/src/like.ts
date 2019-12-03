@@ -22,11 +22,15 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
             throw new Error("[app.like] Internal error");
         }
 
-        const result = await Items.findOne({
+        const likeAction = bodyLike === undefined
+            ? true
+            : bodyLike;
+
+        const result = await Items.countDocuments({
             _id: id
         });
 
-        if (!result) {
+        if (result <= 0) {
             throw new Error(`Item ${id} doesn't exist!`);
         }
 
@@ -35,7 +39,7 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
             owner: user.name
         });
 
-        if (bodyLike) {
+        if (likeAction) {
             if (liked) {
                 throw new Error("Already liked!");
             } else {
@@ -63,8 +67,7 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
                 throw new Error("Already not liked!");
             } else {
                 await Likes.deleteOne({
-                    itemID: id,
-                    ownerID: user.id
+                    _id: liked._id
                 });
 
                 await Items.updateOne(
@@ -76,7 +79,7 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
                     .update(
                         id,
                         {
-                            script: "ctx._source.likes += 1"
+                            script: "ctx._source.likes -= 1"
                         }
                     );
             }
