@@ -23,7 +23,7 @@ For deployment related notes, see the [Ansible](./ansible) folder.
 
 ### Load
 
-Able to handle a load of 1000 concurrent users sending a total 200,000 requests over 10-12 minutes (about 250-300 requests per second).
+Able to handle a load of 1000 concurrent users sending a total 200,000 requests over 10-12 minutes (about 250-300 requests per second). The tail latency (95th percentile) was around 150ms.
 
 ### Hardware
 
