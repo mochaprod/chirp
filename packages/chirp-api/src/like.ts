@@ -87,7 +87,12 @@ const like: RequestHandlerDB<ItemModel, LikesModel> = async (
 
         respond(res);
     } catch (e) {
-        respond(res, e.message);
+        res
+            .status(200)
+            .send({
+                status: "error",
+                error: e.message
+            });
     }
 };
 

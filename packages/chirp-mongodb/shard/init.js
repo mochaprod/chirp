@@ -1,4 +1,12 @@
 use chirp;
+
+db.users.drop();
+db.items.drop();
+db.items.drop();
+db.follows.drop();
+db.likes.drop();
+db.media.drop();
+
 db.users.createIndex({ username: 1, email: 1 });
 db.items.createIndex({ ownerName: 1 });
 db.follows.createIndex({ user: 1, follows: 1 });
