@@ -1,6 +1,6 @@
 # Chirp
 
-A *highly* scalable, *highly* performant, *highly* blazing-fast Twitter clone.
+A **highly** scalable, **highly** performant, **highly** blazing-fast Twitter clone.
 
 ## Ansible
 
